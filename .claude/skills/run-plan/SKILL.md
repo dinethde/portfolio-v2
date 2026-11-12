@@ -41,16 +41,27 @@ Read in this order and stop once you can decide:
 
 1. Its REPORT (the final message).
 2. `.claude/state/results/<ID>.json`: `status`, `failing`, `warnings`, `skipped`.
-3. Visible work: its screenshot next to the Figma screenshot. **This is your visual approval.**
+3. Visible work: send `design-reviewer` with the task's component and Figma ids, for all the wave's visible tasks in one call. Its findings are your visual check; you don't compare screenshots yourself.
 4. The diff (`git diff <base>..HEAD -- <owned files>`), **only** if: the status isn't `pass`, there are warnings, steps were skipped, the screenshot looks off, or it touches a `core_paths` entry.
 
 | Outcome | Action |
 |---|---|
 | Good | `status <ID> done`, and log any decision from NOTES in STATE.md. One commit: `chore(plan): close P1-04` |
 | Small fix | Fix it as its own commit, re-run `orch verify <ID>`, then close it |
+| A bug was fixed (by anyone) | Send `test-planner` with the fix commit, so the bug can't come back |
 | Wrong, and the worker can fix it | Resume the same worker (`SendMessage` to its id) with the file, what's wrong and what it should be. One resume at most, then fix it yourself |
 | `blocked` | Answer and resume, rewrite the task, or do it yourself. A real gap in the plan: fix the task file |
 | `failed` (retries used up) | Read the failing output. Fix it yourself or split the task |
+
+## When to send the reviewers
+
+| Reviewer | Send it |
+|---|---|
+| `design-reviewer` | After a wave with visible tasks (see above), and before a PR that touches UI |
+| `test-planner` | After any bug fix, and before a `lead` task with more than one moving part (it lists the tests first, so you build against them) |
+| `architecture-auditor` | At the end of each phase, and before a PR |
+
+A reviewer's prompt is the scope only: `main..HEAD`, a task id, or a component plus its Figma ids. Its `CHANGES` findings become fixes (yours or a worker's, each its own commit) or new tasks. If you disagree with a finding, log why in STATE.md and run `orch accept-review <agent> --reason "…"` (it asks the user).
 
 ## 4. Close the wave
 
@@ -61,7 +72,7 @@ Read in this order and stop once you can decide:
 
 ## 5. Stop and report when
 
-- every task in the current phase is `done`, or
+- every task in the current phase is `done` and `architecture-auditor` passed on it, or
 - a decision belongs to the user: an open item in STATE.md or the docs, a design change, a package the docs don't list.
 
 The report is short: what's done, what's blocked and why, and the `human` tasks waiting.

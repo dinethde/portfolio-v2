@@ -8,6 +8,9 @@ Inside a project (``python3 .claude/orch.py <command>``):
     orch verify <ID> [--json]      run a task's checks
     orch status <ID> <STATUS>      set a task's status (todo, doing, done, blocked)
     orch check-plan                check the whole plan is consistent
+    orch changes                   files changed on this branch since it left the PR base
+    orch reviews                   which reviews a PR still needs
+    orch accept-review <AGENT> --reason R   accept a review's findings on purpose (log why in STATE.md)
     orch doctor                    check the kit files, CLAUDE.md block and settings
     orch check-pr --title T [--body-file F] [--base B]   the commit guard's PR rules, for CI
     orch hook <NAME>               run a Claude Code hook (used by settings and agents)
@@ -28,8 +31,9 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from orchestrator import __version__, commit_rules, hooks, sync, tasks
+from orchestrator import __version__, commit_rules, hooks, reviews, sync, tasks
 from orchestrator.config import Config, ConfigError, find_project_root, load_config
+from orchestrator.gitutil import changed_since_base
 from orchestrator.verify import format_result, verify
 
 OK, FAILED, USAGE = 0, 1, 2
@@ -132,6 +136,34 @@ def cmd_check_plan(args: argparse.Namespace) -> int:
     return OK
 
 
+def cmd_changes(args: argparse.Namespace) -> int:
+    root, config = _project(args)
+    changed = changed_since_base(root, config.pull_request.base)
+    if changed is None:
+        raise CommandError(f"can't compare with {config.pull_request.base}: is it a branch here or on origin?")
+    print("\n".join(changed))
+    return OK
+
+
+def cmd_reviews(args: argparse.Namespace) -> int:
+    root, config = _project(args)
+    owed = reviews.gate(root, root, config)
+    for item in owed:
+        print(f"  - {item}")
+    print("reviews: ready for a PR" if not owed else f"reviews: {len(owed)} still needed")
+    return OK if not owed else FAILED
+
+
+def cmd_accept_review(args: argparse.Namespace) -> int:
+    root, config = _project(args)
+    known = {r.agent for r in config.reviews}
+    if args.agent not in known:
+        raise CommandError(f"{args.agent} isn't a required review (config: {', '.join(sorted(known))})")
+    reviews.save(root, root, args.agent, "ACCEPTED", reason=args.reason)
+    print(f"{args.agent}: accepted on the current commit. Log the reason in STATE.md in the same change.")
+    return OK
+
+
 def cmd_doctor(args: argparse.Namespace) -> int:
     root, _ = _project(args)
     problems = sync.doctor(root)
@@ -213,6 +245,12 @@ def build_parser() -> argparse.ArgumentParser:
     p.set_defaults(func=cmd_status)
     sub.add_parser("check-plan", help="check the plan is consistent").set_defaults(func=cmd_check_plan)
     sub.add_parser("doctor", help="check the kit is installed correctly").set_defaults(func=cmd_doctor)
+    sub.add_parser("changes", help="files changed since the PR base").set_defaults(func=cmd_changes)
+    sub.add_parser("reviews", help="which reviews a PR still needs").set_defaults(func=cmd_reviews)
+    p = sub.add_parser("accept-review", help="accept a review's findings on purpose")
+    p.add_argument("agent")
+    p.add_argument("--reason", required=True, help="why the findings stand (also log it in STATE.md)")
+    p.set_defaults(func=cmd_accept_review)
     p = sub.add_parser("check-pr", help="check a pull request title and body against the commit rules")
     p.add_argument("--title", required=True)
     p.add_argument("--body-file", help="file holding the description")

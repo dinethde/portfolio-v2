@@ -2,7 +2,10 @@
 
 ``subagent-stop``  a worker tries to finish: check its REPORT, run its task's checks, and
                    send it back (up to ``max_retries`` times) until they pass and it has committed.
-``guard-bash``     before a Bash command: block commits and PRs that break the commit rules.
+``review-stop``    a review agent tries to finish: it must end with a REVIEW block, which is recorded.
+``guard-bash``     before a Bash command: block commits and PRs that break the commit rules, and a PR
+                   while a required review is missing or out of date.
+``tests-only``     before a Write or Edit by the test planner: allow test files only.
 ``format``         after a Write or Edit: run the matching formatter from the config.
 ``require-commit`` the lead tries to finish: send it back once if work is uncommitted.
 
@@ -24,10 +27,10 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from orchestrator import commit_rules, tasks
+from orchestrator import commit_rules, reviews, tasks
 from orchestrator.config import Config, ConfigError, find_project_root, load_config
 from orchestrator.gitutil import changed_files
-from orchestrator.patterns import is_under
+from orchestrator.patterns import is_under, matches_any
 from orchestrator.verify import Result, Step, verify
 
 BLOCKING_EXIT = 2
@@ -36,6 +39,8 @@ REPORT_TAIL = 1500
 FAILURE_TAIL = 1200
 FORMAT_TIMEOUT_SECONDS = 20
 REPORT_TEMPLATE = "TASK: <id>\nSTATUS: DONE | BLOCKED\nFILES: …\nCOMMITS: …\nCHECKS: …\nNOTES: …"
+REVIEW_TEMPLATE = "REVIEW: <your agent name>\nVERDICT: PASS | CHANGES\nSCOPE: …\nFINDINGS:\n1. …"
+PR_CREATE = re.compile(r"\bgh\s+pr\s+create\b")
 
 
 @dataclass(frozen=True)
@@ -44,8 +49,13 @@ class Context:
 
     payload: dict[str, Any]
     work_root: Path
-    state_root: Path
+    project_root: Path
     config: Config
+
+    @property
+    def state_root(self) -> Path:
+        """Where run state (results, attempts, reviews) is kept: always the main checkout."""
+        return self.project_root / STATE_DIR
 
 
 def _read_payload() -> dict[str, Any]:
@@ -63,12 +73,12 @@ def _context(payload: dict[str, Any]) -> Context | None:
         return None
     # A worker in a git worktree has its own cwd. Results still go to the main checkout.
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR")
-    state_root = Path(project_dir) if project_dir else work_root
+    project_root = Path(project_dir) if project_dir else work_root
     try:
         config = load_config(work_root)
     except ConfigError:
         return None
-    return Context(payload, work_root, state_root / STATE_DIR, config)
+    return Context(payload, work_root, project_root, config)
 
 
 def _write_json(path: Path, data: dict[str, Any]) -> None:
@@ -198,6 +208,27 @@ def subagent_stop(ctx: Context) -> int:
     return _block("\n".join(parts))
 
 
+# ---------------------------------------------------------------- review-stop
+
+
+def review_stop(ctx: Context) -> int:
+    """Make a review agent end with a REVIEW block, and record its verdict for the PR gate."""
+    agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
+    agent_type = str(ctx.payload.get("agent_type") or "")
+    message = str(ctx.payload.get("last_assistant_message") or "")
+    block = reviews.ReviewBlock.parse(message)
+    if not block.agent or not block.verdict:
+        if Attempts(ctx.state_root, agent_id).bump() <= ctx.config.max_retries:
+            return _block(f"Finish with the REVIEW block, exactly:\n{REVIEW_TEMPLATE}")
+        return 0
+    # Plugins prefix the type (``kit:design-reviewer``). The block must name the agent that ran.
+    agent = agent_type.rsplit(":", 1)[-1] or block.agent
+    if block.agent != agent:
+        return _block(f"Your REVIEW line must name you: `REVIEW: {agent}`.")
+    reviews.save(ctx.project_root, ctx.work_root, agent, block.verdict, report=message)
+    return 0
+
+
 # ---------------------------------------------------------------- guard-bash
 
 
@@ -205,9 +236,37 @@ def guard_bash(ctx: Context) -> int:
     """Block a Bash command that breaks the commit rules (exit 2, reason on stderr)."""
     command = str((ctx.payload.get("tool_input") or {}).get("command") or "")
     problems = commit_rules.check_command(command, ctx.work_root, ctx.config.commit, ctx.config.pull_request)
+    if PR_CREATE.search(command):
+        problems += [
+            f"review needed first: {item}" for item in reviews.gate(ctx.project_root, ctx.work_root, ctx.config)
+        ]
     if not problems:
         return 0
     print("Commit guard (see the writing-commits skill):\n- " + "\n- ".join(problems), file=sys.stderr)
+    return BLOCKING_EXIT
+
+
+# ---------------------------------------------------------------- tests-only
+
+
+def tests_only(ctx: Context) -> int:
+    """Block a Write or Edit outside the configured test paths (exit 2, reason on stderr)."""
+    tool_input = ctx.payload.get("tool_input") or {}
+    file_path = tool_input.get("file_path") or tool_input.get("notebook_path")
+    if not file_path:
+        return 0
+    try:
+        relative = Path(file_path).resolve().relative_to(ctx.work_root.resolve()).as_posix()
+    except ValueError:
+        relative = str(file_path)
+    if matches_any(ctx.config.test_paths, relative):
+        return 0
+    allowed = ", ".join(ctx.config.test_paths)
+    print(
+        f"{relative} isn't a test file. You may only write files matching {allowed}. "
+        "If the code itself needs a change, describe it in your report instead.",
+        file=sys.stderr,
+    )
     return BLOCKING_EXIT
 
 
@@ -263,7 +322,9 @@ def require_commit(ctx: Context) -> int:
 
 HANDLERS: dict[str, Callable[[Context], int]] = {
     "subagent-stop": subagent_stop,
+    "review-stop": review_stop,
     "guard-bash": guard_bash,
+    "tests-only": tests_only,
     "format": format_file,
     "require-commit": require_commit,
 }

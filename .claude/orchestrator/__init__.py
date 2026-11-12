@@ -6,4 +6,4 @@ and run through ``.claude/orch.py``. It uses only the Python standard library.
 
 from __future__ import annotations
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"

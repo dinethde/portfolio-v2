@@ -14,6 +14,12 @@ git status                            # clean: every change is already an atomic
 git fetch origin
 git rebase origin/<base>              # rebase, never merge
 <full_verify from the config>         # the same checks CI runs first
+python3 .claude/orch.py reviews       # which reviews this branch still needs
+```
+
+Send each review it lists (`architecture-auditor`, and `design-reviewer` when UI changed), fix their findings as atomic commits, and run them again until `orch reviews` says ready. The commit guard blocks `gh pr create` until then: a review counts only for the commit it saw, unless nothing it checks changed since.
+
+```bash
 git push --force-with-lease -u origin HEAD
 ```
 

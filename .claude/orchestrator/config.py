@@ -55,6 +55,18 @@ class FormatRule:
 
 
 @dataclass(frozen=True)
+class Review:
+    """A review agent that must pass before a pull request, when files matching ``when_changed`` changed."""
+
+    agent: str
+    when_changed: str = ".*"
+
+
+DEFAULT_REVIEWS = (Review("architecture-auditor"), Review("design-reviewer", r"\.(tsx|jsx|vue|svelte|css|html)$"))
+DEFAULT_TEST_PATHS = ("tests/**", "e2e/**", "**/__tests__/**", "**/*.test.*", "**/*.spec.*")
+
+
+@dataclass(frozen=True)
 class CommitRules:
     """Limits checked by the commit guard."""
 
@@ -98,6 +110,8 @@ class Config:
     ignore_paths: tuple[str, ...] = (".claude/state/",)
     checks: tuple[Check, ...] = ()
     format_on_edit: tuple[FormatRule, ...] = ()
+    reviews: tuple[Review, ...] = DEFAULT_REVIEWS
+    test_paths: tuple[str, ...] = DEFAULT_TEST_PATHS
     commit: CommitRules = field(default_factory=CommitRules)
     pull_request: PullRequestRules = field(default_factory=PullRequestRules)
 
@@ -127,10 +141,15 @@ def parse_config(raw: dict[str, Any]) -> Config:
     data = {k: v for k, v in raw.items() if not k.startswith("$") and not k.startswith("_")}
     checks = tuple(_build(Check, c, f"checks[{i}]") for i, c in enumerate(data.pop("checks", [])))
     fmt = tuple(_build(FormatRule, r, f"format_on_edit[{i}]") for i, r in enumerate(data.pop("format_on_edit", [])))
+    reviews = (
+        tuple(_build(Review, r, f"reviews[{i}]") for i, r in enumerate(data.pop("reviews")))
+        if "reviews" in data
+        else DEFAULT_REVIEWS
+    )
     commit = _build(CommitRules, data.pop("commit", {}), "commit")
     pr = _build(PullRequestRules, data.pop("pull_request", {}), "pull_request")
     config = _build(Config, data, "orchestrator.json")
-    config = replace(config, checks=checks, format_on_edit=fmt, commit=commit, pull_request=pr)
+    config = replace(config, checks=checks, format_on_edit=fmt, reviews=reviews, commit=commit, pull_request=pr)
     _validate(config)
     return config
 
@@ -140,6 +159,7 @@ def _validate(config: Config) -> None:
         [(config.task_id_pattern, "task_id_pattern")]
         + [(c.files, f"check {c.name!r} files") for c in config.checks]
         + [(r.files, "format_on_edit files") for r in config.format_on_edit]
+        + [(r.when_changed, f"review {r.agent!r} when_changed") for r in config.reviews]
     ):
         try:
             re.compile(pattern)

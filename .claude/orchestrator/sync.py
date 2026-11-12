@@ -37,6 +37,7 @@ REQUIRED_HOOKS = (
 )
 REQUIRED_ENV = {"CLAUDE_CODE_FORK_SUBAGENT": "0", "CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH": "1"}
 REQUIRED_DENY = ("Agent(fork)",)
+REQUIRED_ASK = ("Bash(python3 .claude/orch.py accept-review*)",)
 TEMPLATES = {
     Path(".claude") / "orchestrator.json": "orchestrator.json",
     SETTINGS: "settings.json",
@@ -134,11 +135,13 @@ def merged_settings(settings: dict[str, Any]) -> tuple[dict[str, Any], list[str]
         if env.get(key) != value:
             env[key] = value
             added.append(f"env {key}={value}")
-    deny = settings.setdefault("permissions", {}).setdefault("deny", [])
-    for rule in REQUIRED_DENY:
-        if rule not in deny:
-            deny.append(rule)
-            added.append(f"deny {rule}")
+    permissions = settings.setdefault("permissions", {})
+    for kind, rules in (("deny", REQUIRED_DENY), ("ask", REQUIRED_ASK)):
+        current = permissions.setdefault(kind, [])
+        for rule in rules:
+            if rule not in current:
+                current.append(rule)
+                added.append(f"{kind} {rule}")
     return settings, added
 
 
