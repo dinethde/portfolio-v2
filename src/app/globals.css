@@ -1,0 +1,22 @@
+@import "tailwindcss";
+@import "../styles/design-tokens.css";
+
+/* No raw values in this file. Every colour, size, shadow and breakpoint is a token from
+   design-tokens.css (generated from Figma — TECH_SPEC §2.1). */
+
+@layer base {
+  /* The page's default text is p2 in the rounded family (DESIGN.md "Typography"). */
+  html {
+    font-family: var(--font-rounded);
+    background-color: var(--color-surface-page-active);
+    color: var(--color-txt-neutral-p2-active);
+    font-size: var(--text-p2);
+    line-height: var(--text-p2--line-height);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
