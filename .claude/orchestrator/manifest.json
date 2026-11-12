@@ -1,0 +1,25 @@
+{
+  "files": {
+    ".claude/agents/builder.md": "5cf24d344df665d45b8b4ec0fe5af75670ecf5e888f5587fb00d8942afc836bb",
+    ".claude/agents/mechanic.md": "e8f89be80eede78c3a3de1600f938926ad9f777b180661dc714b9966edfb2ec7",
+    ".claude/orch.py": "5cb37f0fa77586cc0fee9ced57acc38117e04d4d8382f53d9d826e10997d6b94",
+    ".claude/orchestrator/__init__.py": "f59a6e35eeca793788f01efa4599059c999c961c2217a2e6360b727c75b0d795",
+    ".claude/orchestrator/__main__.py": "78cd301d993b9b54aca4efd826f2d6a4fa6fba73e5358c7d0509f9f425e57818",
+    ".claude/orchestrator/cli.py": "c99b742e5019f77c2588131eac59cdbff0bfdd4237ee99fa3b8b59cb66a9caee",
+    ".claude/orchestrator/commit_rules.py": "ff40c7b523c7bd5247a92cee384ae2f60423777681a4c5e0c6691020eba552ab",
+    ".claude/orchestrator/config.py": "4e8834bb18ebfe929a52136d6d0904883b94a6bfedcee7c2ee6b433ee15f89e8",
+    ".claude/orchestrator/frontmatter.py": "588746ad16b80b96d2ccdc6167d92e8f0b6df9a101e6a10e4338da3fc541442a",
+    ".claude/orchestrator/gitutil.py": "c0cc6aa65d3bf6d5a068c8ea195df815445779d942fd65a19374a0b7c555a5ba",
+    ".claude/orchestrator/hooks.py": "175d1845c822c7f041dcc790d3a467430eb7153ba7c7e68143a45851a34b78ba",
+    ".claude/orchestrator/patterns.py": "f57723ab051474091a3226e76bd3e09b639ed4d7f79e581195f006515387d550",
+    ".claude/orchestrator/sync.py": "6a43afb4ca694e8dfc1cec103b6878ba5dfd2f0db497ecc93c0002a7bbed7be3",
+    ".claude/orchestrator/tasks.py": "e7e38ec64c165837bb0a94f58a216e94e1f8c9dc4de26af9775dbce5183a60b8",
+    ".claude/orchestrator/verify.py": "f73e62619a2ef7e4bd820da8563b65ffda7e0af155f382d39c1aa01b9a8f0890",
+    ".claude/skills/opening-a-pull-request/SKILL.md": "01f0a5054fd4dcc1a1d2a741e3be7675c985da5fe1edf629f766f5601d13b39a",
+    ".claude/skills/run-plan/SKILL.md": "0e696b0523b0b26be2e1b3be5f144bd56d9ff1ba104aa978c06d0f9e74ff13c3",
+    ".claude/skills/writing-commits/SKILL.md": "f1c6a1e35823b78794fd286f1691566e54b096e21435239cb52f2e1c0ad89e42",
+    ".claude/skills/writing-tasks/SKILL.md": "0eae00bfa5dd7735d8ad5ffeb062ef77d09eec58054968c7ff0c48032201b1b5"
+  },
+  "kit_commit": "7e118ba",
+  "version": "0.1.0"
+}

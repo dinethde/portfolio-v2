@@ -1,0 +1,76 @@
+{
+  "_comment": "Project settings for the orchestrator kit. Reference: the kit README.",
+  "plan_dir": "plan",
+  "task_id_pattern": "^P\\d+-\\d{2}$",
+  "max_parallel": 3,
+  "max_retries": 3,
+  "command_timeout_seconds": 480,
+  "full_verify": "bun run verify",
+  "core_paths": [
+    "src/lib/github/",
+    "src/app/layout.tsx",
+    "src/app/page.tsx",
+    "src/hooks/",
+    "src/components/timeline/ProgressPath.tsx",
+    "src/lib/motion.ts",
+    "next.config.ts",
+    "Dockerfile",
+    "worker/"
+  ],
+  "ignore_paths": [
+    ".claude/state/",
+    ".obsidian/",
+    "tests/visual/out/"
+  ],
+  "checks": [
+    {
+      "name": "lint (biome)",
+      "requires_path": "node_modules/.bin/biome",
+      "files": "\\.(m?[jt]sx?|json|jsonc|css)$",
+      "cmd": "node_modules/.bin/biome check --no-errors-on-unmatched {files}"
+    },
+    {
+      "name": "typecheck (owned files)",
+      "requires_path": "node_modules/.bin/tsc",
+      "files": "\\.tsx?$",
+      "cmd": "node_modules/.bin/tsc --noEmit -p tsconfig.json --pretty false",
+      "mode": "filter-errors",
+      "error_regex": "^(?P<file>[^\\s(][^(]*)\\(\\d+,\\d+\\): error"
+    },
+    {
+      "name": "no raw colours",
+      "files": "^src/.+\\.(tsx?|css)$",
+      "cmd": "python3 scripts/check_tokens.py {files}"
+    },
+    {
+      "name": "code rules",
+      "files": "^src/.+\\.(tsx?|css)$",
+      "cmd": "python3 scripts/check_code_rules.py {files}"
+    },
+    {
+      "name": "python scripts",
+      "files": "^scripts/.+\\.py$",
+      "requires_command": "ruff",
+      "cmd": "ruff check {files}"
+    }
+  ],
+  "format_on_edit": [
+    {
+      "requires_path": "node_modules/.bin/biome",
+      "files": "\\.(m?[jt]sx?|json|jsonc|css)$",
+      "cmd": "node_modules/.bin/biome format --write --no-errors-on-unmatched {file}"
+    },
+    {
+      "files": "^scripts/.+\\.py$",
+      "requires_command": "ruff",
+      "cmd": "ruff format --quiet {file}"
+    }
+  ],
+  "commit": {
+    "max_subject_length": 60
+  },
+  "pull_request": {
+    "base": "main",
+    "max_words": 200
+  }
+}
