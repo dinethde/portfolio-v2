@@ -66,6 +66,19 @@
       "cmd": "ruff format --quiet {file}"
     }
   ],
+  "reviews": [
+    {
+      "agent": "architecture-auditor"
+    },
+    {
+      "agent": "design-reviewer",
+      "when_changed": "^src/(app|components|styles)/.+\\.(tsx|css)$"
+    }
+  ],
+  "test_paths": [
+    "tests/**",
+    "scripts/tests/**"
+  ],
   "commit": {
     "max_subject_length": 60
   },

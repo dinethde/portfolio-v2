@@ -14,14 +14,15 @@ A lead session plans and reviews, worker agents write the code, and scripts chec
 
 - **Lead (the main session):** runs the plan with `/run-plan`, does the `lead` tasks and checks every worker's result. Only the lead edits `plan/`, `STATE.md`, the docs and `CLAUDE.md`, and adds packages.
 - **Workers:** `builder` (Sonnet, reads Figma) and `mechanic` (Haiku). One task each. They edit only the files the task owns and read only what it lists. They report decisions in NOTES and never plan or redesign. Anything unclear, or a file they don't own: `STATUS: BLOCKED`.
+- **Reviewers** (Sonnet, sent by the lead): `architecture-auditor` checks code against the tech docs, `design-reviewer` checks built UI against Figma in a real browser, both read-only. `test-planner` writes the smallest set of tests that finds bugs, and may only write test files. When to send each is in `run-plan`.
 
 ## The plan
 
 One file per task in `plan/`, with its status in the file. `.claude/orch.py` reads it:
 
-`python3 .claude/orch.py next` (the next wave) · `show <ID>` · `verify <ID>` · `status <ID> <todo|doing|done|blocked>` · `list` · `check-plan` · `doctor`
+`python3 .claude/orch.py next` (the next wave) · `show <ID>` · `verify <ID>` · `status <ID> <todo|doing|done|blocked>` · `list` · `check-plan` · `changes` · `reviews` · `doctor`
 
-Hooks do the policing. A worker can't finish until its checks pass and its files are committed. The lead can't finish with uncommitted work. Bad commit messages, `git add -A` and PRs off the rules are blocked. Edited files are formatted.
+Hooks do the policing. A worker can't finish until its checks pass and its files are committed. The lead can't finish with uncommitted work. Bad commit messages and `git add -A` are blocked. A PR is blocked until the required reviews passed on the current commit (`orch reviews`). Edited files are formatted.
 
 ## Commits: atomic, after every change
 
@@ -71,6 +72,8 @@ Dineth De Silva's portfolio: one quiet, single-column page. Next.js 16 (App Rout
 ## Commands
 
 `bun install` · `bun run dev` · `bun run verify` (lint → typecheck → test → build) · `bun run test <file>` · `bun run e2e <spec>` · `bun run lab:shot <id>` (screenshots at 390, 834 and 1440) · `docker compose up` · `python3 scripts/build_tokens.py`
+
+**For reviewers:** `bun run dev`, then a component at `http://localhost:3000/lab?only=<id>` and the page at `http://localhost:3000`. Breakpoints are 390 (phone), 834 (tablet) and 1440 (desktop).
 
 ## Code rules
 

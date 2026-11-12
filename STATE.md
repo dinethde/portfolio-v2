@@ -43,6 +43,7 @@ _Updated 2026-11-13_
 | D-22 | 11-13 | Task agents are `lead`, `builder`, `mechanic` and `human` (were `opus` and `you`) | The kit names roles, not models, so it works whatever model the lead runs | `plan/` |
 | D-23 | 11-13 | Figma files are exported once by the lead (P0-05) into `src/assets/` and `copy/desktop.md` | The mechanic has no Figma access, and one export keeps every task working from the same files | P0-05 |
 | D-24 | 11-13 | The component lab is `src/app/(dev)/lab/`, with one `entries/<id>.lab.tsx` per component and no shared registry | Parallel tasks never edit the same file | P0-03 |
+| D-25 | 11-13 | Three review agents from the kit: `architecture-auditor`, `design-reviewer`, `test-planner`. A PR is blocked until the auditor passed, and the design reviewer too when `src/app`, `src/components` or `src/styles` UI files changed. Running them during the build is a `run-plan` rule, not a hook | A hook can only block, not start an agent. Gating every edit would cost more than it finds; the PR is the moment that matters | `.claude/orchestrator.json` `reviews` |
 
 ## Open (needs Dineth)
 
