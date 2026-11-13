@@ -4,8 +4,8 @@
     ".claude/agents/builder.md": "edd8c0b596c341f05f93b1e49b69a3cf614b4a396a798d48d377a9cd82ea767b",
     ".claude/agents/design-reviewer.md": "2ca3753fee74830107144bb8ddce65c7cd11c01d782bc8b000e3b44f7019ab59",
     ".claude/agents/mechanic.md": "f3092ed6e8621fe2cb25babe1c40c0f18c523d4e11687ea7a4d9b65a9661d01e",
-    ".claude/agents/pr-fixer.md": "c2497f0c010d91bd95ab0a1311b097e985c90cbe643042e1852165f4c30b06b9",
-    ".claude/agents/pr-reviewer.md": "3716f7151bf22b3d04f0c955cf925a28538cd07a7ca5742bc1f6ec9008e7d32c",
+    ".claude/agents/pr-fixer.md": "c63e19e74dc63f8042be862b1406333a62b873d39ccb64ebafc3c22f1fb56fc6",
+    ".claude/agents/pr-reviewer.md": "517a52190cb1cc62bc0729365036ea35f4016cb990fd985ebbde5ce858cd1f47",
     ".claude/agents/test-planner.md": "47a8dda61f271e8dc551c092794989cc6467d8165209470d6a8f5b1e744a4f9f",
     ".claude/orch.py": "5cb37f0fa77586cc0fee9ced57acc38117e04d4d8382f53d9d826e10997d6b94",
     ".claude/orchestrator/__init__.py": "3f5eac93bd5f3204bc2b14369a7e977d1cd6beed29e0884fa4623091d9dec3bc",
@@ -26,6 +26,7 @@
     ".claude/skills/opening-a-pull-request/SKILL.md": "c277e3567c02ee1ebafe33180d3f27694b79c45d5a53310e937b0dfa0ee992ec",
     ".claude/skills/run-plan/SKILL.md": "ccdfda4ffe33716b29b7db3f7d3bc6d4cba90ad81c0c78a241a61b1431a876a9",
     ".claude/skills/writing-commits/SKILL.md": "f1c6a1e35823b78794fd286f1691566e54b096e21435239cb52f2e1c0ad89e42",
+    ".claude/skills/writing-review-comments/SKILL.md": "9bb3e9a59d403cccf2065b1fd0cd275a04df57e33283a99d431d394350da6bdd",
     ".claude/skills/writing-tasks/SKILL.md": "0eae00bfa5dd7735d8ad5ffeb062ef77d09eec58054968c7ff0c48032201b1b5"
   },
   "kit_commit": "390ea59",

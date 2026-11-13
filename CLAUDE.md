@@ -52,6 +52,7 @@ Load `writing-commits` before every commit.
 | `writing-commits` | Before every commit |
 | `opening-a-pull-request` | Before opening any PR into `dev` (lead only) |
 | `merging-a-pull-request` | The review loop and the merge (lead only) |
+| `writing-review-comments` | Before commenting on or replying to a PR review (preloaded in `pr-reviewer` and `pr-fixer`) |
 
 ## REPORT block (workers end every task with exactly this)
 
