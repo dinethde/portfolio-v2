@@ -7,15 +7,23 @@ with the code, so every status change is a commit.
 
 from __future__ import annotations
 
+import json
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 from orchestrator import frontmatter
 from orchestrator.config import HUMAN, LEAD, Config
 from orchestrator.patterns import overlaps
 
-STATUSES = ("todo", "doing", "done", "blocked")
+FILE_STATUSES = ("todo", "done", "blocked")
+"""Written in the task file and committed. ``done`` is set on the task's own branch, so it reaches
+the PR base only when the PR merges."""
+RUNTIME_STATUSES = ("doing", "review")
+"""Kept in ``.claude/state/status.json``, never committed: ``doing`` while it's built, ``review``
+while its PR is open. They change many times a day and would only cause merge conflicts in git."""
+STATUSES = FILE_STATUSES + RUNTIME_STATUSES
+RUNTIME_FILE = Path(".claude") / "state" / "status.json"
 REQUIRED = ("id", "title", "agent", "status")
 LIST_FIELDS = ("needs", "owns", "read", "figma", "verify")
 README = "README.md"
@@ -118,8 +126,8 @@ def validate(tasks: list[Task], config: Config) -> list[str]:
             problems.append(f"{where}: id doesn't match {config.task_id_pattern}")
         if task.agent not in config.agents:
             problems.append(f"{where}: agent must be one of {', '.join(config.agents)}")
-        if task.status not in STATUSES:
-            problems.append(f"{where}: status must be one of {', '.join(STATUSES)}")
+        if task.status not in FILE_STATUSES:
+            problems.append(f"{where}: status must be one of {', '.join(FILE_STATUSES)}")
         if task.agent != HUMAN and not task.verify:
             problems.append(f"{where}: needs at least one verify command")
         if task.is_worker_task and not task.owns:
@@ -178,6 +186,7 @@ class Wave:
     waiting: list[Task] = field(default_factory=list)
     human: list[Task] = field(default_factory=list)
     running: list[Task] = field(default_factory=list)
+    in_review: list[Task] = field(default_factory=list)
 
 
 def _clashes(task: Task, others: list[Task]) -> bool:
@@ -188,15 +197,17 @@ def next_wave(tasks: list[Task], max_parallel: int) -> Wave:
     """Pick the next wave.
 
     Worker tasks join the wave in plan order while there is room and their ``owns``
-    don't overlap a running task, a ready lead task or one already picked. The rest wait.
+    don't overlap a running task, an open pull request, a ready lead task or one already picked.
+    Only ``done`` (merged) satisfies a dependency, so a task never builds on unmerged work.
     """
-    wave = Wave(running=[t for t in tasks if t.status == "doing"])
+    wave = Wave(running=[t for t in tasks if t.status == "doing"], in_review=[t for t in tasks if t.status == "review"])
     candidates = ready(tasks)
     wave.lead = [t for t in candidates if t.agent == LEAD]
     wave.human = [t for t in candidates if t.agent == HUMAN]
     room = max_parallel - sum(1 for t in wave.running if t.is_worker_task)
+    busy = wave.running + wave.in_review + wave.lead
     for task in (t for t in candidates if t.is_worker_task):
-        if room > 0 and not _clashes(task, wave.running + wave.lead + wave.workers):
+        if room > 0 and not _clashes(task, busy + wave.workers):
             wave.workers.append(task)
             room -= 1
         else:
@@ -204,12 +215,34 @@ def next_wave(tasks: list[Task], max_parallel: int) -> Wave:
     return wave
 
 
-def set_status(task: Task, status: str) -> None:
-    """Change the status line in the task file, leaving the rest untouched."""
+def _read_runtime(state_root: Path) -> dict[str, str]:
+    try:
+        data = json.loads((state_root / RUNTIME_FILE).read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return {}
+    return {str(k): str(v) for k, v in data.items()} if isinstance(data, dict) else {}
+
+
+def with_runtime(tasks: list[Task], state_root: Path) -> list[Task]:
+    """The tasks with their ``doing`` and ``review`` states applied. A task the file calls done stays done."""
+    runtime = _read_runtime(state_root)
+    return [replace(t, status=runtime[t.id]) if t.status == "todo" and t.id in runtime else t for t in tasks]
+
+
+def set_status(task: Task, status: str, state_root: Path) -> None:
+    """Set a task's status: ``doing`` and ``review`` in the run state, the rest in its file."""
     if status not in STATUSES:
         raise PlanError(f"status must be one of {', '.join(STATUSES)}")
-    text = task.path.read_text(encoding="utf-8")
-    task.path.write_text(frontmatter.set_scalar(text, "status", status), encoding="utf-8")
+    runtime = _read_runtime(state_root)
+    runtime.pop(task.id, None)
+    if status in RUNTIME_STATUSES:
+        runtime[task.id] = status
+    else:
+        text = task.path.read_text(encoding="utf-8")
+        task.path.write_text(frontmatter.set_scalar(text, "status", status), encoding="utf-8")
+    path = state_root / RUNTIME_FILE
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(runtime, indent=2, sort_keys=True) + "\n", encoding="utf-8")
 
 
 def render(task: Task) -> str:

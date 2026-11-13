@@ -90,7 +90,8 @@ def check_subject(subject: str, what: str, rules: CommitRules) -> list[str]:
     return problems
 
 
-def _tokens(command: str) -> list[str]:
+def split_command(command: str) -> list[str]:
+    """The shell words of ``command``, or an empty list if it can't be split."""
     try:
         return shlex.split(command)
     except ValueError:
@@ -119,7 +120,7 @@ def commit_message(command: str, cwd: Path) -> str | None:
     if heredoc:
         message: str | None = heredoc.group(2)
     else:
-        tokens = _tokens(command)
+        tokens = split_command(command)
         parts = _values(tokens, ("-m", "--message"))
         files = _values(tokens, ("-F", "--file"))
         message = "\n\n".join(parts) if parts else _read(cwd, files[0]) if files else None
@@ -128,7 +129,86 @@ def commit_message(command: str, cwd: Path) -> str | None:
     return message
 
 
-def check_command(command: str, cwd: Path, commit: CommitRules, pr: PullRequestRules) -> list[str]:
+SHELL_OPERATORS = {"&&", "||", ";", "|", "&", ";;", "|&"}
+
+
+def segments(command: str) -> list[list[str]]:
+    """The simple commands in a shell line, split at ``&&``, ``||``, ``;`` and pipes, as word lists."""
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    try:
+        words = list(lexer)
+    except ValueError:
+        return []
+    result: list[list[str]] = [[]]
+    for word in words:
+        if word in SHELL_OPERATORS or word == "\n":
+            result.append([])
+        else:
+            result[-1].append(word)
+    return [s for s in result if s]
+
+
+def _push_targets(tokens: list[str], current_branch: str | None) -> tuple[list[str], list[str]]:
+    """The branches a ``git push`` would update, and the problems that can be seen without git."""
+    try:
+        args = tokens[tokens.index("push") + 1 :]
+    except ValueError:
+        return [], []
+    problems = []
+    if any(a in ("--all", "--mirror") for a in args):
+        problems.append("`git push --all` or `--mirror` pushes every branch. Push one feature branch")
+    if any(a in ("-f", "--force") or (a.startswith("+") and len(a) > 1) for a in args):
+        problems.append("Use `--force-with-lease` on your own feature branch, never a plain force push")
+    positional = [a for a in args if not a.startswith("-")]
+    refspecs = positional[1:]  # the first positional is the remote
+    if not refspecs:
+        return ([current_branch] if current_branch else []), problems
+    targets = []
+    for spec in refspecs:
+        destination = spec.lstrip("+").split(":", 1)[-1]
+        if destination in ("HEAD", "") and current_branch:
+            destination = current_branch
+        targets.append(destination.removeprefix("refs/heads/"))
+    return targets, problems
+
+
+def check_push(command: str, current_branch: str | None, pr: PullRequestRules) -> list[str]:
+    """Problems with a ``git push``: agents push feature branches only, never the PR base or a protected branch."""
+    if "push" not in command:
+        return []
+    targets: list[str] = []
+    problems: list[str] = []
+    for words in segments(command):
+        if words[0] == "git" and "push" in words:
+            found, issues = _push_targets(words, current_branch)
+            targets += found
+            problems += issues
+    for target in targets:
+        if target in pr.protected:
+            problems.append(f"Never push to {target}. Only a person merges into {target}, through a PR from {pr.base}")
+        elif target == pr.base:
+            problems.append(f"Don't push to {pr.base} directly. Push a feature branch and open a PR into {pr.base}")
+    return problems
+
+
+def check_gh_api(command: str) -> list[str]:
+    """Problems with a ``gh api`` call: it may read and comment, not merge, delete or move branches."""
+    if not re.search(r"\bgh\s+api\b", command):
+        return []
+    problems = []
+    if re.search(r"/pulls/\d+/merge\b|mergePullRequest", command):
+        problems.append("Merge with `gh pr merge <number>`, not the API, so the merge gate can check it")
+    if re.search(r"(?:-X|--method)[\s=]+DELETE\b", command, re.IGNORECASE) or "deleteRef" in command:
+        problems.append("Don't delete through the GitHub API. Ask the user")
+    if re.search(r"/git/refs\b|updateRef|/branches/[^\s/]+/protection", command):
+        problems.append("Don't move branches or change branch protection through the API. Ask the user")
+    return problems
+
+
+def check_command(
+    command: str, cwd: Path, commit: CommitRules, pr: PullRequestRules, current_branch: str | None = None
+) -> list[str]:
     """Every rule a shell command breaks. An empty list means it may run."""
     if "git" not in command and "gh " not in command:
         return []
@@ -140,7 +220,8 @@ def check_command(command: str, cwd: Path, commit: CommitRules, pr: PullRequestR
     if COMMIT_ALL.search(command) and "--amend" not in command:
         return ["`git commit -a` commits every changed file. Stage this change's files by path, then commit."]
 
-    problems: list[str] = []
+    problems: list[str] = check_push(command, current_branch, pr)
+    problems += check_gh_api(command)
     if re.search(r"\bgit\s+commit\b", command) and "--no-edit" not in command:
         message = commit_message(command, cwd)
         if message:
@@ -148,7 +229,9 @@ def check_command(command: str, cwd: Path, commit: CommitRules, pr: PullRequestR
             problems += check_text(message, "commit message", commit.extra_banned_words)
 
     if re.search(r"\bgh\s+pr\s+create\b", command):
-        tokens = _tokens(command)
+        tokens = split_command(command)
+        if not _values(tokens, ("--base", "-B")):
+            problems.append(f"Pass `--base {pr.base}`: without it gh targets the default branch")
         bodies = _values(tokens, ("--body", "-b"))
         bodies += [text for name in _values(tokens, ("--body-file", "-F")) if (text := _read(cwd, name))]
         problems += check_pull_request(

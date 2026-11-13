@@ -89,10 +89,21 @@ class CommitRules:
 
 @dataclass(frozen=True)
 class PullRequestRules:
-    """Limits checked when an agent runs ``gh pr create``."""
+    """How pull requests flow: agents open and merge PRs into ``base``; nobody but a human touches ``protected``."""
 
-    base: str = "main"
+    base: str = "dev"
+    protected: tuple[str, ...] = ("main",)
+    merge_method: str = "squash"
+    max_review_rounds: int = 3
     max_words: int = 200
+
+
+@dataclass(frozen=True)
+class Setup:
+    """A command that prepares a fresh worktree, run by ``orch verify`` when ``when_missing`` doesn't exist."""
+
+    cmd: str
+    when_missing: str
 
 
 @dataclass(frozen=True)
@@ -107,11 +118,12 @@ class Config:
     command_timeout_seconds: int = 480
     full_verify: str | None = None
     core_paths: tuple[str, ...] = ()
-    ignore_paths: tuple[str, ...] = (".claude/state/",)
+    ignore_paths: tuple[str, ...] = (".claude/state/", ".claude/worktrees/")
     checks: tuple[Check, ...] = ()
     format_on_edit: tuple[FormatRule, ...] = ()
     reviews: tuple[Review, ...] = DEFAULT_REVIEWS
     test_paths: tuple[str, ...] = DEFAULT_TEST_PATHS
+    setup: Setup | None = None
     commit: CommitRules = field(default_factory=CommitRules)
     pull_request: PullRequestRules = field(default_factory=PullRequestRules)
 
@@ -146,10 +158,13 @@ def parse_config(raw: dict[str, Any]) -> Config:
         if "reviews" in data
         else DEFAULT_REVIEWS
     )
+    setup = _build(Setup, data.pop("setup"), "setup") if data.get("setup") else data.pop("setup", None)
     commit = _build(CommitRules, data.pop("commit", {}), "commit")
     pr = _build(PullRequestRules, data.pop("pull_request", {}), "pull_request")
     config = _build(Config, data, "orchestrator.json")
-    config = replace(config, checks=checks, format_on_edit=fmt, reviews=reviews, commit=commit, pull_request=pr)
+    config = replace(
+        config, checks=checks, format_on_edit=fmt, reviews=reviews, setup=setup, commit=commit, pull_request=pr
+    )
     _validate(config)
     return config
 
@@ -172,6 +187,11 @@ def _validate(config: Config) -> None:
             raise ConfigError(f"check {check.name!r}: filter-errors mode needs error_regex")
     if config.max_parallel < 1 or config.max_retries < 0:
         raise ConfigError("max_parallel must be at least 1 and max_retries at least 0")
+    pr = config.pull_request
+    if pr.merge_method not in ("squash", "rebase", "merge"):
+        raise ConfigError("pull_request.merge_method must be squash, rebase or merge")
+    if pr.base in pr.protected:
+        raise ConfigError("pull_request.base can't also be a protected branch")
     clash = {LEAD, HUMAN} & set(config.workers)
     if clash:
         raise ConfigError(f"workers can't be named {', '.join(sorted(clash))}")

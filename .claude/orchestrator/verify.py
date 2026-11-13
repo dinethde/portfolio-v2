@@ -118,6 +118,10 @@ def verify(task: Task, config: Config, root: Path) -> Result:
     """Run every check for ``task`` from the folder ``root``."""
     result = Result(task=task.id, title=task.title, agent=task.agent)
     timeout = config.command_timeout_seconds
+    if config.setup and not (root / config.setup.when_missing).exists():
+        # A fresh worktree has no dependencies yet; without them the checks below would be skipped.
+        code, output = run_shell(config.setup.cmd, root, timeout)
+        result.steps.append(Step(f"setup: {config.setup.cmd}", ok=code == 0, output="" if code == 0 else tail(output)))
 
     literal = [p for p in task.owns if not is_glob(p)]
     missing = [p for p in literal if not (root / p).exists()]

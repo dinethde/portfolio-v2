@@ -1,6 +1,6 @@
 ---
 name: architecture-auditor
-description: Checks a change against the architecture and tech docs, and reports every place where the code and the docs disagree. Read-only. Use before opening a pull request, and at the end of each plan phase. Give it a range (`main..HEAD`), a task id or files; with nothing, it audits the whole branch.
+description: Checks a branch against the architecture and tech docs, and reports every place where the code and the docs disagree. Read-only. Use on every task branch before its pull request opens, and on dev at the end of each plan phase. Give it the branch name (and the task id if there is one).
 model: sonnet
 tools: Read, Grep, Glob, Bash
 maxTurns: 30
@@ -18,7 +18,7 @@ You audit code against its architecture. You don't fix anything and you don't ju
 
 ## Steps
 
-1. **Scope.** Use what you were given. With nothing, take the branch: `python3 .claude/orch.py changes`. Read the diff with `git diff origin/<base>...HEAD -- <files>`, where `<base>` is `pull_request.base` in `.claude/orchestrator.json`.
+1. **Scope.** The branch you were given. `<base>` is `pull_request.base` in `.claude/orchestrator.json` (usually `dev`). List the files with `git diff --name-only origin/<base>...<branch>` and read the diff with `git diff origin/<base>...<branch> -- <files>`. Run `git fetch origin <base>` first. Read a changed file whole with `git show <branch>:<path>`. Auditing `dev` itself at the end of a phase: the scope is everything since the phase began.
 2. **The rules.** Open the tech docs named in the project part of CLAUDE.md (usually `docs/ARCHITECTURE.md` and `docs/TECH_SPEC.md`). Read only the sections that apply to the changed files, plus `STATE.md` decisions: a logged decision is allowed even if the docs don't mention it.
 3. **Check each changed file against:**
    - **Layers and imports:** does any file import from a layer it must not use?
@@ -37,7 +37,8 @@ End with exactly this block. `PASS` means no findings at `high` or `medium`.
 ```
 REVIEW: architecture-auditor
 VERDICT: PASS | CHANGES
-SCOPE: <range or files>
+BRANCH: <the branch you reviewed>
+SCOPE: <base>...<branch>, <n> files
 FINDINGS:
 1. [high|medium|low] path:line — what the code does · what the doc says (doc §section) · fix the code | fix the doc
 ```
@@ -46,6 +47,8 @@ FINDINGS:
 - `medium`: drifts from the documented shape (a file in the wrong folder, a data path the docs don't show).
 - `low`: worth knowing, not worth blocking (the doc is vague or out of date).
 - No findings: write `FINDINGS: none`.
+
+A hook records the verdict against `BRANCH` and its current commit. The pull request can't open, or merge, until it holds for the commit being shipped.
 
 ## Limits
 

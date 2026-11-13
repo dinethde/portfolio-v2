@@ -31,7 +31,8 @@ LAUNCHER = 'python3 "$CLAUDE_PROJECT_DIR/.claude/orch.py"'
 
 # (event, matcher, hook name, timeout in seconds)
 REQUIRED_HOOKS = (
-    ("PreToolUse", "Bash", "guard-bash", 15),
+    ("PreToolUse", "Bash", "guard-bash", 45),
+    ("PreToolUse", "Agent|Task", "guard-agent", 15),
     ("PostToolUse", "Write|Edit", "format", 30),
     ("Stop", None, "require-commit", 20),
 )

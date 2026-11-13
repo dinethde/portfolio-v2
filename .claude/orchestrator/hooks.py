@@ -6,6 +6,9 @@
 ``guard-bash``     before a Bash command: block commits and PRs that break the commit rules, and a PR
                    while a required review is missing or out of date.
 ``tests-only``     before a Write or Edit by the test planner: allow test files only.
+``pr-review-stop`` pr-reviewer tries to finish: it must end with a PR block on the PR's current head.
+``pr-fix-stop``    pr-fixer tries to finish: its fixes must be committed and pushed.
+``guard-agent``    before the lead starts a subagent: no new pr-fixer round once a PR used up its rounds.
 ``format``         after a Write or Edit: run the matching formatter from the config.
 ``require-commit`` the lead tries to finish: send it back once if work is uncommitted.
 
@@ -27,9 +30,9 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable
 
-from orchestrator import commit_rules, reviews, tasks
+from orchestrator import commit_rules, prs, reviews, tasks
 from orchestrator.config import Config, ConfigError, find_project_root, load_config
-from orchestrator.gitutil import changed_files
+from orchestrator.gitutil import changed_files, current_branch, fetch, main_checkout, rev_parse, unpushed_commits
 from orchestrator.patterns import is_under, matches_any
 from orchestrator.verify import Result, Step, verify
 
@@ -39,8 +42,14 @@ REPORT_TAIL = 1500
 FAILURE_TAIL = 1200
 FORMAT_TIMEOUT_SECONDS = 20
 REPORT_TEMPLATE = "TASK: <id>\nSTATUS: DONE | BLOCKED\nFILES: …\nCOMMITS: …\nCHECKS: …\nNOTES: …"
-REVIEW_TEMPLATE = "REVIEW: <your agent name>\nVERDICT: PASS | CHANGES\nSCOPE: …\nFINDINGS:\n1. …"
+REVIEW_TEMPLATE = (
+    "REVIEW: <your agent name>\nVERDICT: PASS | CHANGES\nBRANCH: <the branch you reviewed>\nSCOPE: …\nFINDINGS:\n1. …"
+)
 PR_CREATE = re.compile(r"\bgh\s+pr\s+create\b")
+PR_MERGE = re.compile(r"\bgh\s+pr\s+merge\b")
+MERGE_FLAGS = {"squash": "--squash", "rebase": "--rebase", "merge": "--merge"}
+PR_TEMPLATE = "PR: <number>\nVERDICT: APPROVE | CHANGES\nHEAD: <the commit you reviewed>\nCOMMENTS: …"
+FIX_TEMPLATE = "PR: <number>\nSTATUS: DONE | BLOCKED\nCOMMITS: …\nREPLIES: …\nNOTES: …"
 
 
 @dataclass(frozen=True)
@@ -73,7 +82,7 @@ def _context(payload: dict[str, Any]) -> Context | None:
         return None
     # A worker in a git worktree has its own cwd. Results still go to the main checkout.
     project_dir = os.environ.get("CLAUDE_PROJECT_DIR")
-    project_root = Path(project_dir) if project_dir else work_root
+    project_root = Path(project_dir) if project_dir else (main_checkout(work_root) or work_root)
     try:
         config = load_config(work_root)
     except ConfigError:
@@ -172,6 +181,14 @@ def subagent_stop(ctx: Context) -> int:
         record("blocked")
         return 0
 
+    branch = current_branch(ctx.work_root)
+    rules = ctx.config.pull_request
+    if branch in (rules.base, *rules.protected) and attempts.bump() <= max_retries:
+        return _block(
+            f"You're on {branch}. Work for {report.task} belongs on its own branch: "
+            f"`git switch -c feat/{report.task}-<slug>` (your commits come with you), then finish again."
+        )
+
     result = _verify_task(ctx, report.task)
     if result.ok and result.uncommitted:
         if attempts.bump() <= max_retries:
@@ -225,7 +242,15 @@ def review_stop(ctx: Context) -> int:
     agent = agent_type.rsplit(":", 1)[-1] or block.agent
     if block.agent != agent:
         return _block(f"Your REVIEW line must name you: `REVIEW: {agent}`.")
-    reviews.save(ctx.project_root, ctx.work_root, agent, block.verdict, report=message)
+    branch = block.branch or current_branch(ctx.work_root)
+    if not branch or rev_parse(ctx.work_root, branch) is None:
+        if Attempts(ctx.state_root, agent_id).bump() <= ctx.config.max_retries:
+            return _block(
+                f"Add the branch you reviewed to the REVIEW block: `BRANCH: <name>`. Got {branch!r}, "
+                "which isn't a branch here."
+            )
+        return 0
+    reviews.save(ctx.project_root, ctx.work_root, agent, block.verdict, branch=branch, report=message)
     return 0
 
 
@@ -235,7 +260,11 @@ def review_stop(ctx: Context) -> int:
 def guard_bash(ctx: Context) -> int:
     """Block a Bash command that breaks the commit rules (exit 2, reason on stderr)."""
     command = str((ctx.payload.get("tool_input") or {}).get("command") or "")
-    problems = commit_rules.check_command(command, ctx.work_root, ctx.config.commit, ctx.config.pull_request)
+    problems = commit_rules.check_command(
+        command, ctx.work_root, ctx.config.commit, ctx.config.pull_request, current_branch(ctx.work_root)
+    )
+    if PR_MERGE.search(command):
+        problems += _merge_problems(ctx, command)
     if PR_CREATE.search(command):
         problems += [
             f"review needed first: {item}" for item in reviews.gate(ctx.project_root, ctx.work_root, ctx.config)
@@ -246,7 +275,131 @@ def guard_bash(ctx: Context) -> int:
     return BLOCKING_EXIT
 
 
+def _merge_problems(ctx: Context, command: str) -> list[str]:
+    tokens = commit_rules.split_command(command)
+    rules = ctx.config.pull_request
+    problems = []
+    flag = MERGE_FLAGS[rules.merge_method]
+    if flag not in tokens:
+        problems.append(f"Merge with `{flag}` (pull_request.merge_method)")
+    if "--admin" in tokens:
+        problems.append("`--admin` skips the branch rules. Never use it")
+    number = prs.merge_number(tokens)
+    if number is None:
+        return [*problems, "Name the PR: `gh pr merge <number> ...`"]
+    info = prs.pr_info(ctx.work_root, number)
+    if info is None:
+        return [*problems, f"Couldn't read PR #{number} from GitHub, so the merge can't be checked. Try again"]
+    problems += prs.merge_gate(ctx.project_root, ctx.config, number, info)
+    # The pre-PR reviews must still hold for the commit being merged: a fix can change what they checked.
+    branch, head = str(info.get("headRefName") or ""), str(info.get("headRefOid") or "")
+    if branch and head:
+        fetch(ctx.work_root, branch)
+        changed = [str(f.get("path")) for f in info.get("files") or [] if isinstance(f, dict)]
+        problems += [
+            f"pre-PR review needed again: {item}"
+            for item in reviews.owed(
+                ctx.project_root, ctx.work_root, ctx.config, branch=branch, head=head, changed=changed
+            )
+        ]
+    return problems
+
+
+# ---------------------------------------------------------------- pr-review-stop and pr-fix-stop
+
+
+def pr_review_stop(ctx: Context) -> int:
+    """Make pr-reviewer end with a PR block about the PR's current head, and record it for the merge gate."""
+    agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
+    message = str(ctx.payload.get("last_assistant_message") or "")
+    block = prs.PrBlock.parse(message)
+    if block.number is None or block.verdict is None or block.head is None:
+        if Attempts(ctx.state_root, agent_id).bump() <= ctx.config.max_retries:
+            return _block(f"Finish with the PR block, exactly:\n{PR_TEMPLATE}")
+        return 0
+    info = prs.pr_info(ctx.work_root, block.number)
+    head = str(info.get("headRefOid") or "") if info else block.head
+    if info and not prs.same_commit(block.head, head):
+        if Attempts(ctx.state_root, agent_id).bump() <= ctx.config.max_retries:
+            return _block(
+                f"PR #{block.number} is now at {head[:12]}, but you reviewed {block.head}. "
+                "Review the new commits too, then finish with the PR block again."
+            )
+        return 0
+    prs.save(ctx.project_root, block.number, block.verdict, head, report=message)
+    return 0
+
+
+def pr_fix_stop(ctx: Context) -> int:
+    """Make pr-fixer commit and push its fixes before it finishes."""
+    agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
+    message = str(ctx.payload.get("last_assistant_message") or "")
+    number = re.search(r"^\s*PR:\s*#?(\d+)", message, re.MULTILINE)
+    status = re.search(r"^\s*STATUS:\s*(DONE|BLOCKED)\b", message, re.MULTILINE | re.IGNORECASE)
+    attempts = Attempts(ctx.state_root, agent_id)
+    if not number or not status:
+        if attempts.bump() <= ctx.config.max_retries:
+            return _block(f"Finish with the FIX block, exactly:\n{FIX_TEMPLATE}")
+        return 0
+    if status.group(1).upper() == "BLOCKED":
+        return 0
+    pending = [f for f in changed_files(ctx.work_root) or [] if not is_under(f, ctx.config.ignore_paths)]
+    unpushed = unpushed_commits(ctx.work_root)
+    problems = []
+    if pending:
+        problems.append("uncommitted changes: " + ", ".join(pending[:10]))
+    if unpushed is None:
+        problems.append("this branch has no upstream: push it with `git push -u origin HEAD`")
+    elif unpushed:
+        problems.append(f"{unpushed} commit(s) not pushed: run `git push`")
+    if problems and attempts.bump() <= ctx.config.max_retries:
+        return _block("Before you finish: " + "; ".join(problems) + ". Then reply on each comment you fixed.")
+    return 0
+
+
+# ---------------------------------------------------------------- guard-agent
+
+PR_NUMBER = re.compile(r"\bPR\s*#?(\d+)\b", re.IGNORECASE)
+
+
+def guard_agent(ctx: Context) -> int:
+    """Stop the review loop at ``max_review_rounds``: no new pr-fixer round once they're used up."""
+    tool_input = ctx.payload.get("tool_input") or {}
+    agent = str(tool_input.get("subagent_type") or "").rsplit(":", 1)[-1]
+    if agent != "pr-fixer":
+        return 0
+    match = PR_NUMBER.search(str(tool_input.get("prompt") or ""))
+    if not match:
+        print("Name the pull request in pr-fixer's prompt: `PR <number>`.", file=sys.stderr)
+        return BLOCKING_EXIT
+    number = int(match.group(1))
+    record = prs.load(ctx.project_root, number)
+    limit = ctx.config.pull_request.max_review_rounds
+    if record and record.verdict == "CHANGES" and record.rounds >= limit:
+        print(
+            f"PR #{number} has had {record.rounds} rounds of changes (limit {limit}). Don't start another: "
+            "read the open threads yourself, then fix it, settle it, or ask the user.",
+            file=sys.stderr,
+        )
+        return BLOCKING_EXIT
+    return 0
+
+
 # ---------------------------------------------------------------- tests-only
+
+
+def _locate(ctx: Context, file_path: str) -> tuple[Path, str] | None:
+    """The checkout a file belongs to and its path inside it.
+
+    A file in a worktree under the project (``.claude/worktrees/<name>/src/a.ts``) belongs to that
+    worktree, so rules written for ``src/…`` still match it.
+    """
+    path = Path(file_path).resolve()
+    root = find_project_root(path.parent) or ctx.work_root.resolve()
+    try:
+        return root, path.relative_to(root).as_posix()
+    except ValueError:
+        return None
 
 
 def tests_only(ctx: Context) -> int:
@@ -255,10 +408,8 @@ def tests_only(ctx: Context) -> int:
     file_path = tool_input.get("file_path") or tool_input.get("notebook_path")
     if not file_path:
         return 0
-    try:
-        relative = Path(file_path).resolve().relative_to(ctx.work_root.resolve()).as_posix()
-    except ValueError:
-        relative = str(file_path)
+    located = _locate(ctx, str(file_path))
+    relative = located[1] if located else str(file_path)
     if matches_any(ctx.config.test_paths, relative):
         return 0
     allowed = ", ".join(ctx.config.test_paths)
@@ -278,21 +429,21 @@ def format_file(ctx: Context) -> int:
     file_path = (ctx.payload.get("tool_input") or {}).get("file_path")
     if not file_path:
         return 0
-    try:
-        relative = Path(file_path).resolve().relative_to(ctx.work_root.resolve()).as_posix()
-    except ValueError:
+    located = _locate(ctx, str(file_path))
+    if located is None:
         return 0  # outside the project
+    root, relative = located
     for rule in ctx.config.format_on_edit:
         if not re.search(rule.files, relative):
             continue
-        if rule.requires_path and not (ctx.work_root / rule.requires_path).exists():
+        if rule.requires_path and not (root / rule.requires_path).exists():
             continue
         if rule.requires_command and shutil.which(rule.requires_command) is None:
             continue
         command = rule.cmd.replace("{file}", shlex.quote(relative))
         with contextlib.suppress(OSError, subprocess.TimeoutExpired):
             subprocess.run(  # noqa: S602 - project-owned command line
-                command, shell=True, cwd=ctx.work_root, capture_output=True, timeout=FORMAT_TIMEOUT_SECONDS, check=False
+                command, shell=True, cwd=root, capture_output=True, timeout=FORMAT_TIMEOUT_SECONDS, check=False
             )
         return 0
     return 0
@@ -325,6 +476,9 @@ HANDLERS: dict[str, Callable[[Context], int]] = {
     "review-stop": review_stop,
     "guard-bash": guard_bash,
     "tests-only": tests_only,
+    "pr-review-stop": pr_review_stop,
+    "pr-fix-stop": pr_fix_stop,
+    "guard-agent": guard_agent,
     "format": format_file,
     "require-commit": require_commit,
 }

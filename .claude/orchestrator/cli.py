@@ -6,11 +6,12 @@ Inside a project (``python3 .claude/orch.py <command>``):
     orch next                      the next wave: lead tasks, worker tasks to run in parallel, the rest
     orch show <ID>                 one task, as a worker reads it
     orch verify <ID> [--json]      run a task's checks
-    orch status <ID> <STATUS>      set a task's status (todo, doing, done, blocked)
+    orch status <ID> <STATUS>      set a task's status (todo, doing, review, done, blocked)
     orch check-plan                check the whole plan is consistent
     orch changes                   files changed on this branch since it left the PR base
     orch reviews                   which reviews a PR still needs
     orch accept-review <AGENT> --reason R   accept a review's findings on purpose (log why in STATE.md)
+    orch pr <NUMBER>               an open PR's review rounds and whether it may be merged
     orch doctor                    check the kit files, CLAUDE.md block and settings
     orch check-pr --title T [--body-file F] [--base B]   the commit guard's PR rules, for CI
     orch hook <NAME>               run a Claude Code hook (used by settings and agents)
@@ -31,9 +32,9 @@ import sys
 from collections.abc import Sequence
 from pathlib import Path
 
-from orchestrator import __version__, commit_rules, hooks, reviews, sync, tasks
+from orchestrator import __version__, commit_rules, hooks, prs, reviews, sync, tasks
 from orchestrator.config import Config, ConfigError, find_project_root, load_config
-from orchestrator.gitutil import changed_since_base
+from orchestrator.gitutil import changed_since_base, main_checkout
 from orchestrator.verify import format_result, verify
 
 OK, FAILED, USAGE = 0, 1, 2
@@ -53,10 +54,15 @@ def _project(args: argparse.Namespace) -> tuple[Path, Config]:
         raise CommandError(str(exc)) from exc
 
 
+def _state_root(root: Path) -> Path:
+    """Run state lives in the main checkout, even when orch runs inside a worktree."""
+    return main_checkout(root) or root
+
+
 def _plan(args: argparse.Namespace) -> tuple[Path, Config, list[tasks.Task]]:
     root, config = _project(args)
     try:
-        return root, config, tasks.load_plan(root, config)
+        return root, config, tasks.with_runtime(tasks.load_plan(root, config), _state_root(root))
     except tasks.PlanError as exc:
         raise CommandError(str(exc)) from exc
 
@@ -88,6 +94,7 @@ def cmd_next(args: argparse.Namespace) -> int:
     wave = tasks.next_wave(plan, config.max_parallel)
     sections = (
         ("running", wave.running),
+        ("in review (pull request open)", wave.in_review),
         ("lead (do these yourself, one at a time)", wave.lead),
         (f"workers (start together, max {config.max_parallel})", wave.workers),
         ("ready but waiting (overlapping files or no room)", wave.waiting),
@@ -119,10 +126,10 @@ def cmd_verify(args: argparse.Namespace) -> int:
 
 
 def cmd_status(args: argparse.Namespace) -> int:
-    _, _, plan = _plan(args)
+    root, _, plan = _plan(args)
     task = _find(plan, args.id)
     try:
-        tasks.set_status(task, args.status)
+        tasks.set_status(task, args.status, _state_root(root))
     except tasks.PlanError as exc:
         raise CommandError(str(exc)) from exc
     print(f"{task.id}: {task.status} -> {args.status}")
@@ -147,7 +154,7 @@ def cmd_changes(args: argparse.Namespace) -> int:
 
 def cmd_reviews(args: argparse.Namespace) -> int:
     root, config = _project(args)
-    owed = reviews.gate(root, root, config)
+    owed = reviews.gate(_state_root(root), root, config)
     for item in owed:
         print(f"  - {item}")
     print("reviews: ready for a PR" if not owed else f"reviews: {len(owed)} still needed")
@@ -159,9 +166,29 @@ def cmd_accept_review(args: argparse.Namespace) -> int:
     known = {r.agent for r in config.reviews}
     if args.agent not in known:
         raise CommandError(f"{args.agent} isn't a required review (config: {', '.join(sorted(known))})")
-    reviews.save(root, root, args.agent, "ACCEPTED", reason=args.reason)
+    reviews.save(_state_root(root), root, args.agent, "ACCEPTED", reason=args.reason)
     print(f"{args.agent}: accepted on the current commit. Log the reason in STATE.md in the same change.")
     return OK
+
+
+def cmd_pr(args: argparse.Namespace) -> int:
+    root, config = _project(args)
+    record = prs.load(_state_root(root), args.number)
+    if record:
+        rounds = f"{record.rounds} round(s) of changes"
+        print(f"PR #{args.number}: last review {record.verdict} on {record.head[:12]}, {rounds}")
+        if record.rounds >= config.pull_request.max_review_rounds and record.verdict != "APPROVE":
+            print(f"  review rounds used up ({config.pull_request.max_review_rounds}): fix it yourself or ask the user")
+    else:
+        print(f"PR #{args.number}: not reviewed yet")
+    info = prs.pr_info(root, args.number)
+    if info is None:
+        raise CommandError(f"couldn't read PR #{args.number} from GitHub (is gh installed and signed in?)")
+    problems = prs.merge_gate(_state_root(root), config, args.number, info)
+    for problem in problems:
+        print(f"  - {problem}")
+    print("ready to merge" if not problems else "not ready to merge")
+    return OK if not problems else FAILED
 
 
 def cmd_doctor(args: argparse.Namespace) -> int:
@@ -247,6 +274,9 @@ def build_parser() -> argparse.ArgumentParser:
     sub.add_parser("doctor", help="check the kit is installed correctly").set_defaults(func=cmd_doctor)
     sub.add_parser("changes", help="files changed since the PR base").set_defaults(func=cmd_changes)
     sub.add_parser("reviews", help="which reviews a PR still needs").set_defaults(func=cmd_reviews)
+    p = sub.add_parser("pr", help="an open PR's review rounds and merge readiness")
+    p.add_argument("number", type=int)
+    p.set_defaults(func=cmd_pr)
     p = sub.add_parser("accept-review", help="accept a review's findings on purpose")
     p.add_argument("agent")
     p.add_argument("--reason", required=True, help="why the findings stand (also log it in STATE.md)")

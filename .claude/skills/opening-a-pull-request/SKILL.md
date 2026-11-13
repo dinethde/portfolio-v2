@@ -1,18 +1,20 @@
 ---
 name: opening-a-pull-request
-description: How to open a pull request (rebase, checks, title, description, self-review) and how to write PR text that reads as though a person wrote it. Use only when the user has asked for a PR.
+description: How to open a pull request into the PR base (dev) - one task, one branch, one small PR - with checks, pre-PR reviews and PR text that reads as though a person wrote it. Use for every PR an agent opens. Never for dev into main.
 ---
 
 # Opening a pull request
 
-Only open a PR when the user asks. `git push` and `gh pr create` need their approval (the `ask` list in `.claude/settings.json`). The base branch and the word limit are `pull_request.base` and `pull_request.max_words` in `.claude/orchestrator.json`.
+**One PR does one thing**: one task, one branch, small enough to review in ten minutes. If it needs "and also", it's two PRs.
+
+**Where PRs go.** Agents open PRs into `pull_request.base` (`dev`) and nowhere else. `main` (`pull_request.protected`) is the finished product: only a person opens and merges `dev → main`. The commit guard blocks pushing to `dev` or `main`, a PR without `--base dev`, and a PR into `main`.
 
 ## 1 · Before you open anything
 
 ```bash
 git status                            # clean: every change is already an atomic commit
 git fetch origin
-git rebase origin/<base>              # rebase, never merge
+git merge origin/dev                  # only if dev moved and conflicts; never rebase a pushed branch
 <full_verify from the config>         # the same checks CI runs first
 python3 .claude/orch.py reviews       # which reviews this branch still needs
 ```
@@ -20,17 +22,17 @@ python3 .claude/orch.py reviews       # which reviews this branch still needs
 Send each review it lists (`architecture-auditor`, and `design-reviewer` when UI changed), fix their findings as atomic commits, and run them again until `orch reviews` says ready. The commit guard blocks `gh pr create` until then: a review counts only for the commit it saw, unless nothing it checks changed since.
 
 ```bash
-git push --force-with-lease -u origin HEAD
+git push -u origin HEAD               # a feature branch: feat/<ID>-<slug> or fix/<ID>-<slug>
 ```
 
-Never open a PR from the base branch itself. A failing check the reviewer finds is a wasted round trip.
+A failing check the reviewer finds is a wasted round trip.
 
 ## 2 · The title and description
 
 The title is the squash commit subject, so it follows the `writing-commits` rules. Write the body to a file and pass it with `--body-file`:
 
 ```bash
-gh pr create --base <base> --title "fix(timeline): keep the line still while the plane loads" --body-file .git/PR_BODY.md
+gh pr create --base dev --title "fix(timeline): keep the line still while the plane loads" --body-file .git/PR_BODY.md
 ```
 
 The commit guard checks the title, the body, the base branch and the word limit before the command runs.
@@ -85,6 +87,10 @@ Then check what CI can't:
 5. Is `STATE.md` updated for every decision the docs don't cover?
 6. Could someone review it in ten minutes? If not, split it.
 
-## 4 · After the merge
+## 4 · After it opens
 
-Check that the deploy run on the base branch went green, then look at what you changed on the live site.
+Set the task to `review` (`orch status <ID> review`). The review loop and the merge follow `merging-a-pull-request`.
+
+## 5 · dev into main (a person's job)
+
+When `dev` is ready to ship, the user opens `dev → main` and merges it with a **merge commit**, not squash. That keeps one commit per PR on `main`, and those count on their GitHub contribution graph. An agent can write that PR's description if asked, but never opens or merges it.

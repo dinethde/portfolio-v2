@@ -77,3 +77,39 @@ def changed_since_base(root: Path, base: str) -> list[str] | None:
     if committed is None or pending is None:
         return None
     return sorted({*committed, *pending})
+
+
+def current_branch(root: Path) -> str | None:
+    """The checked-out branch, or None when detached or outside a repository."""
+    output = _git(root, "symbolic-ref", "--quiet", "--short", "HEAD")
+    if not output:
+        return None
+    return output.strip() or None
+
+
+def unpushed_commits(root: Path) -> int | None:
+    """Commits on HEAD that its upstream doesn't have, or None without an upstream."""
+    output = _git(root, "rev-list", "--count", "@{upstream}..HEAD")
+    return int(output.strip()) if output and output.strip().isdigit() else None
+
+
+def main_checkout(root: Path) -> Path | None:
+    """The main working tree of the repository ``root`` belongs to, even from inside a linked worktree."""
+    output = _git(root, "rev-parse", "--path-format=absolute", "--git-common-dir")
+    if not output or not output.strip():
+        return None
+    common = Path(output.strip())
+    return common.parent if common.name == ".git" else None
+
+
+def rev_parse(root: Path, ref: str) -> str | None:
+    """The full hash ``ref`` points at, or None if it doesn't name a commit."""
+    output = _git(root, "rev-parse", "--verify", "--quiet", f"{ref}^{{commit}}")
+    if not output:
+        return None
+    return output.strip() or None
+
+
+def fetch(root: Path, *refs: str) -> bool:
+    """Fetch ``refs`` from origin. True on success."""
+    return _git(root, "fetch", "--quiet", "origin", *refs) is not None

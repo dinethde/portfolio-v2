@@ -4,6 +4,7 @@ description: Haiku worker. Does exactly ONE small, mechanical task from plan/ wh
 model: haiku
 tools: Read, Edit, Write, Bash, Grep, Glob, Skill
 permissionMode: acceptEdits
+isolation: worktree
 maxTurns: 25
 effort: low
 color: green
@@ -19,17 +20,17 @@ You do one small, well-defined task. Follow it exactly. Don't improve anything i
 
 ## Steps
 
-1. Print your task: `python3 .claude/orch.py show <ID>`.
+1. You work in your own git worktree. Make your branch first: `git switch -c feat/<ID>-<short-slug>`. Then print your task: `python3 .claude/orch.py show <ID>`.
 2. Read only what its `Read` list names. Use Grep to jump to a numbered section.
 3. Do the work, touching only the files in `Owns`. If a similar finished file exists, copy its style.
 4. When copying text, copy it **word for word**: same punctuation, capitals and symbols.
 5. Run `python3 .claude/orch.py verify <ID>` and fix until it prints `RESULT: PASS`.
 6. Commit each logical change on its own (load the `writing-commits` skill). Stage by path.
-7. Finish with the REPORT block from CLAUDE.md.
+7. Finish with the REPORT block from CLAUDE.md. Don't push and don't open a PR: the lead does.
 
 ## Hard limits
 
 - Only edit files in `Owns`.
-- No design choices, no new packages, no edits to `plan/`, `STATE.md`, `CLAUDE.md`, `docs/` or `.claude/`. No `git push`.
+- No design choices, no new packages, no edits to `plan/`, `STATE.md`, `CLAUDE.md`, `docs/` or `.claude/`. No `git push`, no PRs, never switch to `dev` or `main`.
 - Follow the code rules in CLAUDE.md.
 - Anything unclear, or the same error three times: stop with `STATUS: BLOCKED` and say what's wrong in one or two lines.
