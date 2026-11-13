@@ -19,6 +19,7 @@
   ],
   "ignore_paths": [
     ".claude/state/",
+    ".claude/worktrees/",
     ".obsidian/",
     "tests/visual/out/"
   ],
@@ -79,11 +80,20 @@
     "tests/**",
     "scripts/tests/**"
   ],
+  "setup": {
+    "cmd": "bun install --frozen-lockfile",
+    "when_missing": "node_modules"
+  },
   "commit": {
     "max_subject_length": 60
   },
   "pull_request": {
-    "base": "main",
+    "base": "dev",
+    "protected": [
+      "main"
+    ],
+    "merge_method": "squash",
+    "max_review_rounds": 3,
     "max_words": 200
   }
 }

@@ -198,11 +198,11 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 ## 7. CI/CD (GitHub Actions)
 
-**Branches:** `main` is production and protected. Work happens on `feat/*` and `fix/*`, merged through a PR with green CI (squash merge). Commits are **atomic** and follow Conventional Commits; the message rules are in the `writing-commits` skill, and CI checks the PR title and body with the same rules as the commit guard (`python3 .claude/orch.py check-pr`). Configure Biome's import sorting for the order third-party → react → aliases → relative.
+**Branches:** `main` is production: only a person merges into it, through a PR from `dev` with a merge commit. `dev` is the integration branch: every task is its own `feat/*` or `fix/*` branch and a small PR into `dev`, squash-merged after review and green CI (STATE.md D-26). Commits are **atomic** and follow Conventional Commits; the message rules are in the `writing-commits` skill, and CI checks the PR title and body with the same rules as the commit guard (`python3 .claude/orch.py check-pr`). Configure Biome's import sorting for the order third-party → react → aliases → relative.
 
 | Workflow | When | Steps |
 |---|---|---|
-| `ci.yml` | Every PR and every push to `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → Playwright (Chromium + WebKit at 390/834/1440, with axe) → Lighthouse CI → `docker build` (proves the image builds) |
+| `ci.yml` | Every PR, and every push to `dev` and `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → Playwright (Chromium + WebKit at 390/834/1440, with axe) → Lighthouse CI → `docker build` (proves the image builds) |
 | `deploy.yml` | Push to `main`, after CI | `bunx wrangler deploy`, which builds the Dockerfile, pushes the image to Cloudflare and rolls out the Worker and container |
 | `refresh-fallback.yml` | Weekly | Fetches fresh contributions into `contributions.fallback.json` and opens a PR if it changed |
 

@@ -12,17 +12,27 @@ A lead session plans and reviews, worker agents write the code, and scripts chec
 
 ## Roles
 
-- **Lead (the main session):** runs the plan with `/run-plan`, does the `lead` tasks and checks every worker's result. Only the lead edits `plan/`, `STATE.md`, the docs and `CLAUDE.md`, and adds packages.
-- **Workers:** `builder` (Sonnet, reads Figma) and `mechanic` (Haiku). One task each. They edit only the files the task owns and read only what it lists. They report decisions in NOTES and never plan or redesign. Anything unclear, or a file they don't own: `STATUS: BLOCKED`.
-- **Reviewers** (Sonnet, sent by the lead): `architecture-auditor` checks code against the tech docs, `design-reviewer` checks built UI against Figma in a real browser, both read-only. `test-planner` writes the smallest set of tests that finds bugs, and may only write test files. When to send each is in `run-plan`.
+- **Lead (the main session):** runs the plan with `/run-plan`, does the `lead` tasks, opens every pull request and merges it. Only the lead edits `plan/`, `STATE.md`, the docs and `CLAUDE.md`, and adds packages.
+- **Workers:** `builder` (Sonnet, reads Figma) and `mechanic` (Haiku). One task each, in their own worktree and branch. They edit only the files the task owns and read only what it lists. They report decisions in NOTES and never plan or redesign. Anything unclear, or a file they don't own: `STATUS: BLOCKED`.
+- **Before a PR opens** (Sonnet, read-only): `architecture-auditor` checks the branch against the tech docs; `design-reviewer` checks built UI against Figma in a real browser. `test-planner` writes the fewest tests that find bugs, and may only write test files.
+- **After a PR opens** (Sonnet): `pr-reviewer` reviews it on GitHub with inline comments and never edits code; `pr-fixer` answers those comments and fixes conflicts on the PR's branch. They take turns until the reviewer approves, at most `max_review_rounds` times.
+
+## Branches and pull requests
+
+- **`main` is the finished product. Only a person merges into it**, through a PR from `dev`. Agents never push to, open a PR into, or merge into `main`.
+- **Agents work on `dev` through pull requests only.** One task is one branch (`feat/<ID>-<slug>`, `fix/…`) and one small PR into `dev` that does one thing. Never push to `dev` directly.
+- A PR merges, squashed, when `pr-reviewer` approved its current commit, the pre-PR reviews still hold, checks are green and there are no conflicts. The lead runs `gh pr merge`; the merge gate checks all of it with GitHub.
+- Never deploy.
 
 ## The plan
 
 One file per task in `plan/`, with its status in the file. `.claude/orch.py` reads it:
 
-`python3 .claude/orch.py next` (the next wave) · `show <ID>` · `verify <ID>` · `status <ID> <todo|doing|done|blocked>` · `list` · `check-plan` · `changes` · `reviews` · `doctor`
+`python3 .claude/orch.py next` (the next wave) · `show <ID>` · `verify <ID>` · `status <ID> <todo|doing|review|done|blocked>` · `list` · `check-plan` · `changes` · `reviews` · `pr <N>` · `doctor`
 
-Hooks do the policing. A worker can't finish until its checks pass and its files are committed. The lead can't finish with uncommitted work. Bad commit messages and `git add -A` are blocked. A PR is blocked until the required reviews passed on the current commit (`orch reviews`). Edited files are formatted.
+A task is `done` when its PR is merged into `dev`, and only then can tasks that need it start.
+
+Hooks do the policing. A worker can't finish until its checks pass, its files are committed and it's on its own branch. The lead can't finish with uncommitted work. Bad commit messages, `git add -A`, pushes to `dev` or `main`, and PRs or merges that break the rules are blocked. Edited files are formatted.
 
 ## Commits: atomic, after every change
 
@@ -32,7 +42,6 @@ Load `writing-commits` before every commit.
 - Stage by path. Never `git add -A`, `git add .` or `git commit -a`.
 - `type(scope): subject`, the effect not the file. No tool attribution, no emoji, no filler.
 - `index.lock` error: another agent is committing. Wait two seconds and retry.
-- Never push or deploy unless the user asks. PRs follow `opening-a-pull-request`.
 
 ## Skills
 
@@ -41,7 +50,8 @@ Load `writing-commits` before every commit.
 | `run-plan` | Building from the plan (lead only) |
 | `writing-tasks` | Writing or changing task files (lead only) |
 | `writing-commits` | Before every commit |
-| `opening-a-pull-request` | When the user asks for a PR |
+| `opening-a-pull-request` | Before opening any PR into `dev` (lead only) |
+| `merging-a-pull-request` | The review loop and the merge (lead only) |
 
 ## REPORT block (workers end every task with exactly this)
 

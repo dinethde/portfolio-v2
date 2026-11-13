@@ -34,7 +34,7 @@ _Updated 2026-11-13_
 | D-13 | 11-13 | Kept `motion`, Biome, Vitest, Playwright and Lighthouse CI, though they're not in the stack list | Needed for the timeline, linting and tests | TECH_SPEC §1 |
 | D-14 | 11-13 | The Sonnet builder may **read** Figma. The Haiku mechanic doesn't use Figma. Nobody edits Figma | "Figma is the source of truth" means agents must read it. Mechanic tasks don't need design | `.claude/agents/` |
 | D-15 | 11-13 | **Every agent, workers included, commits atomically** after each change, staging by path | Dineth's atomic-commit rule. Replaces the old "the main session commits each wave" | CLAUDE.md, hooks |
-| D-16 | 11-13 | `git push` and `gh pr create` need the user's approval (the "ask" list). PRs only when asked. The base branch is `main` | The PR skill came from Vows (`dev-v2`); this repo's flow is `feat/*` → `main` | settings, PR skill |
+| D-16 | 11-13 | ~~Replaced by D-26.~~ `git push` and `gh pr create` need the user's approval (the "ask" list). PRs only when asked. The base branch is `main` | The PR skill came from Vows (`dev-v2`); this repo's flow is `feat/*` → `main` | settings, PR skill |
 | D-17 | 11-13 | Raw colours inside **SVG assets** exported from Figma (brand mark gradient, project glows) are allowed | They're artwork, not styling. `check_tokens.py` scans `.ts/.tsx/.css` only | check_tokens |
 | D-18 | 11-13 | `useEffect` must have a `// subscription:` comment on the line above | That's how the "only for a real subscription" rule can be checked | check_code_rules |
 | D-19 | 11-13 | `DESIGN.md` front matter uses short token names; code uses the full Figma path names | DESIGN.md is a summary; TECH_SPEC §2.1 has the real mapping | DESIGN.md |
@@ -44,6 +44,10 @@ _Updated 2026-11-13_
 | D-23 | 11-13 | Figma files are exported once by the lead (P0-05) into `src/assets/` and `copy/desktop.md` | The mechanic has no Figma access, and one export keeps every task working from the same files | P0-05 |
 | D-24 | 11-13 | The component lab is `src/app/(dev)/lab/`, with one `entries/<id>.lab.tsx` per component and no shared registry | Parallel tasks never edit the same file | P0-03 |
 | D-25 | 11-13 | Three review agents from the kit: `architecture-auditor`, `design-reviewer`, `test-planner`. A PR is blocked until the auditor passed, and the design reviewer too when `src/app`, `src/components` or `src/styles` UI files changed. Running them during the build is a `run-plan` rule, not a hook | A hook can only block, not start an agent. Gating every edit would cost more than it finds; the PR is the moment that matters | `.claude/orchestrator.json` `reviews` |
+| D-26 | 11-14 | **Branch flow:** one task = one branch = one small PR into `dev`, squash-merged by the lead after `pr-reviewer` approves and CI is green. Only Dineth merges `dev → main`, with a merge commit. Agents never push to `dev` or `main`. Replaces D-16 | `main` must always be a working product; small PRs are easy to review | hooks, `.claude/orchestrator.json` `pull_request`, PR skills |
+| D-27 | 11-14 | After a PR opens, `pr-reviewer` comments and `pr-fixer` answers, taking turns at most 3 rounds, run by the lead. The auditor and design reviewer run before the PR opens and are checked again at merge | Fresh eyes on every PR; a fix can't skip the earlier reviews | agents, merge gate |
+| D-28 | 11-14 | `doing` and `review` statuses live in `.claude/state/`, not in the task files. `done` is committed on the task's branch | Busy statuses in git would conflict on every PR; `done` lands on `dev` exactly when the PR merges | `plan/`, `orch status` |
+| D-29 | 11-14 | Workers run in git worktrees under `.claude/worktrees/` (ignored); `bun install` runs there first | Parallel tasks on different branches can't share one folder | `.gitignore`, `setup` in the config |
 
 ## Open (needs Dineth)
 

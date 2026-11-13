@@ -28,7 +28,13 @@
       "Bash(git fetch*)",
       "Bash(git show*)",
       "mcp__playwright",
-      "mcp__chrome-devtools"
+      "mcp__chrome-devtools",
+      "Bash(git push*)",
+      "Bash(git merge origin/*)",
+      "Bash(git worktree *)",
+      "Bash(gh pr *)",
+      "Bash(gh api *)",
+      "Bash(gh run *)"
     ],
     "deny": [
       "Agent(fork)",
@@ -42,8 +48,6 @@
       "mcp__Figma__upload_assets"
     ],
     "ask": [
-      "Bash(git push*)",
-      "Bash(gh pr create*)",
       "Bash(git rebase*)",
       "Bash(git reset*)",
       "Bash(python3 .claude/orch.py accept-review*)"
@@ -69,6 +73,16 @@
           {
             "type": "command",
             "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/orch.py\" hook guard-bash",
+            "timeout": 45
+          }
+        ]
+      },
+      {
+        "matcher": "Agent|Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/orch.py\" hook guard-agent",
             "timeout": 15
           }
         ]

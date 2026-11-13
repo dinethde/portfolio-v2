@@ -23,6 +23,7 @@ tests/visual/out/
 # Claude Code: personal settings and run state (the kit, settings.json and orchestrator.json ARE committed)
 .claude/settings.local.json
 .claude/state/
+.claude/worktrees/
 CLAUDE.local.md
 
 # editors and OS
