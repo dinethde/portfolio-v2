@@ -25,6 +25,7 @@ import shlex
 import shutil
 import subprocess
 import sys
+import time
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -41,6 +42,8 @@ STATE_DIR = Path(".claude") / "state"
 REPORT_TAIL = 1500
 FAILURE_TAIL = 1200
 FORMAT_TIMEOUT_SECONDS = 20
+HANDBACK_WAIT_SECONDS = 5.0
+HANDBACK_POLL_SECONDS = 0.1
 REPORT_TEMPLATE = "TASK: <id>\nSTATUS: DONE | BLOCKED\nFILES: …\nCOMMITS: …\nCHECKS: …\nNOTES: …"
 REVIEW_TEMPLATE = (
     "REVIEW: <your agent name>\nVERDICT: PASS | CHANGES\nBRANCH: <the branch you reviewed>\nSCOPE: …\nFINDINGS:\n1. …"
@@ -101,6 +104,49 @@ def _block(reason: str) -> int:
     return 0
 
 
+def _final_message(payload: dict[str, Any]) -> str:
+    """The agent's final report.
+
+    An agent that hands its report back with the ``SubagentHandback`` tool ends on a tool call,
+    so ``last_assistant_message`` is empty. Then the report is that call's ``message``, read from
+    the agent's transcript. The stop hook can run before that line is written, so wait for it.
+    """
+    message = str(payload.get("last_assistant_message") or "")
+    if message.strip():
+        return message
+    transcript = payload.get("agent_transcript_path")
+    if not transcript:
+        return message
+    deadline = time.monotonic() + HANDBACK_WAIT_SECONDS
+    while True:
+        handback = _handback_message(Path(str(transcript)))
+        if handback is not None:
+            return handback
+        if time.monotonic() >= deadline:
+            return message
+        time.sleep(HANDBACK_POLL_SECONDS)
+
+
+def _handback_message(transcript: Path) -> str | None:
+    """The ``message`` of the last ``SubagentHandback`` call in ``transcript``, if it's written yet."""
+    try:
+        lines = transcript.read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return None
+    for line in reversed(lines):
+        try:
+            entry = json.loads(line)
+        except ValueError:
+            continue  # a line still being written
+        content = (entry.get("message") or {}).get("content") if isinstance(entry, dict) else None
+        if not isinstance(content, list):
+            continue
+        for block in reversed(content):
+            if isinstance(block, dict) and block.get("type") == "tool_use" and block.get("name") == "SubagentHandback":
+                return str((block.get("input") or {}).get("message") or "")
+    return None
+
+
 # ---------------------------------------------------------------- subagent-stop
 
 
@@ -150,7 +196,7 @@ def _verify_task(ctx: Context, task_id: str) -> Result:
 def subagent_stop(ctx: Context) -> int:
     """Decide whether a worker may finish."""
     agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
-    message = str(ctx.payload.get("last_assistant_message") or "")
+    message = _final_message(ctx.payload)
     report = Report.parse(message)
     attempts = Attempts(ctx.state_root, agent_id)
     max_retries = ctx.config.max_retries
@@ -232,7 +278,7 @@ def review_stop(ctx: Context) -> int:
     """Make a review agent end with a REVIEW block, and record its verdict for the PR gate."""
     agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
     agent_type = str(ctx.payload.get("agent_type") or "")
-    message = str(ctx.payload.get("last_assistant_message") or "")
+    message = _final_message(ctx.payload)
     block = reviews.ReviewBlock.parse(message)
     if not block.agent or not block.verdict:
         if Attempts(ctx.state_root, agent_id).bump() <= ctx.config.max_retries:
@@ -311,7 +357,7 @@ def _merge_problems(ctx: Context, command: str) -> list[str]:
 def pr_review_stop(ctx: Context) -> int:
     """Make pr-reviewer end with a PR block about the PR's current head, and record it for the merge gate."""
     agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
-    message = str(ctx.payload.get("last_assistant_message") or "")
+    message = _final_message(ctx.payload)
     block = prs.PrBlock.parse(message)
     if block.number is None or block.verdict is None or block.head is None:
         if Attempts(ctx.state_root, agent_id).bump() <= ctx.config.max_retries:
@@ -333,7 +379,7 @@ def pr_review_stop(ctx: Context) -> int:
 def pr_fix_stop(ctx: Context) -> int:
     """Make pr-fixer commit and push its fixes before it finishes."""
     agent_id = str(ctx.payload.get("agent_id") or "unknown-agent")
-    message = str(ctx.payload.get("last_assistant_message") or "")
+    message = _final_message(ctx.payload)
     number = re.search(r"^\s*PR:\s*#?(\d+)", message, re.MULTILINE)
     status = re.search(r"^\s*STATUS:\s*(DONE|BLOCKED)\b", message, re.MULTILINE | re.IGNORECASE)
     attempts = Attempts(ctx.state_root, agent_id)
