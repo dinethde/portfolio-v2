@@ -95,7 +95,7 @@ class PullRequestRules:
     protected: tuple[str, ...] = ("main",)
     merge_method: str = "squash"
     max_review_rounds: int = 3
-    max_words: int = 200
+    max_words: int = 300
 
 
 @dataclass(frozen=True)

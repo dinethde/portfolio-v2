@@ -94,6 +94,6 @@
     ],
     "merge_method": "squash",
     "max_review_rounds": 3,
-    "max_words": 200
+    "max_words": 300
   }
 }
