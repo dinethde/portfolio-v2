@@ -14,7 +14,9 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    command: "bun run build && bun run start",
+    // Same server as the container (STATE D-02): standalone output needs its static files beside it.
+    command:
+      "bun run build && cp -R .next/static .next/standalone/.next/ && (test ! -d public || cp -R public .next/standalone/) && node .next/standalone/server.js",
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
