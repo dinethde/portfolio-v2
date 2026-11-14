@@ -3,7 +3,7 @@ import "server-only";
 import fallback from "@/content/contributions.fallback.json";
 import { site } from "@/content/site";
 
-import { type Contributions, calendarRange, RawCalendar, toContributions } from "./map";
+import { Contributions, calendarRange, RawCalendar, toContributions } from "./map";
 
 const ENDPOINT = "https://api.github.com/graphql";
 const REVALIDATE_SECONDS = 21600;
@@ -45,6 +45,6 @@ export async function getContributions(): Promise<Contributions> {
     return toContributions(await fetchCalendar(site.github.handle, token, now), now);
   } catch (error) {
     console.error("[contrib]", error instanceof Error ? error.message : "unknown error");
-    return { ...(fallback as Contributions), source: "fallback" };
+    return { ...Contributions.parse(fallback), source: "fallback" };
   }
 }

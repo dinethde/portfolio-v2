@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { calendarRange, type RawCalendar, toContributions, toLevel } from "@/lib/github/map";
+import fallback from "@/content/contributions.fallback.json";
+import {
+  Contributions,
+  calendarRange,
+  type RawCalendar,
+  toContributions,
+  toLevel,
+} from "@/lib/github/map";
 
 vi.mock("server-only", () => ({}));
 
@@ -58,6 +65,19 @@ describe("toContributions", () => {
 
   it("throws when GitHub has no such user", () => {
     expect(() => toContributions({ user: null }, NOW)).toThrow();
+  });
+});
+
+describe("fallback file", () => {
+  it("matches the Contributions shape", () => {
+    expect(Contributions.parse(fallback).weeks).toHaveLength(52);
+  });
+
+  it("rejects a malformed refresh", () => {
+    expect(() =>
+      Contributions.parse({ ...fallback, weeks: [[{ date: "2025-01-05", count: 1, level: 9 }]] }),
+    ).toThrow();
+    expect(() => Contributions.parse({ total: 1 })).toThrow();
   });
 });
 
