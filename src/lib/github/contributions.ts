@@ -1,7 +1,6 @@
 import "server-only";
 
 import fallback from "@/content/contributions.fallback.json";
-import { site } from "@/content/site";
 
 import { Contributions, calendarRange, RawCalendar, toContributions } from "./map";
 
@@ -37,12 +36,12 @@ export async function fetchCalendar(login: string, token: string, now: Date): Pr
 }
 
 /** Never throws: any failure returns the fallback file and logs `[contrib]`. */
-export async function getContributions(): Promise<Contributions> {
+export async function getContributions(login: string): Promise<Contributions> {
   try {
     const token = process.env.GITHUB_TOKEN;
     if (!token) throw new Error("GITHUB_TOKEN is not set");
     const now = new Date();
-    return toContributions(await fetchCalendar(site.github.handle, token, now), now);
+    return toContributions(await fetchCalendar(login, token, now), now);
   } catch (error) {
     console.error("[contrib]", error instanceof Error ? error.message : "unknown error");
     return { ...Contributions.parse(fallback), source: "fallback" };

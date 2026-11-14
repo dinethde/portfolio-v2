@@ -93,7 +93,7 @@ describe("getContributions", () => {
   });
 
   async function load() {
-    return (await import("@/lib/github/contributions")).getContributions();
+    return (await import("@/lib/github/contributions")).getContributions("dinethde");
   }
 
   it("returns live data on success", async () => {
