@@ -1,96 +1,121 @@
 ---
 name: opening-a-pull-request
-description: How to open a pull request into the PR base (dev) - one task, one branch, one small PR - with checks, pre-PR reviews and PR text that reads as though a person wrote it. Use for every PR an agent opens. Never for dev into main.
+description: "How to open a pull request: one atomic change, into dev only, checked and self-reviewed first, with a title and body anyone can understand at a glance. Use for every PR an agent opens. Never for dev into main."
 ---
 
 # Opening a pull request
 
-**One PR does one thing**: one task, one branch, small enough to review in ten minutes. If it needs "and also", it's two PRs.
+## 1 · One PR, one change
 
-**Where PRs go.** Agents open PRs into `pull_request.base` (`dev`) and nowhere else. `main` (`pull_request.protected`) is the finished product: only a person opens and merges `dev → main`. The commit guard blocks pushing to `dev` or `main`, a PR without `--base dev`, and a PR into `main`.
+- **A PR does one thing:** one task, one branch, one change you can name in a short sentence.
+- **If the description needs "and also", it's two PRs.** A fix found along the way gets its own `fix/` branch and PR.
+- **Small enough to review in ten minutes.** Past about 400 changed lines (not counting lockfiles and generated files), split it.
+- **Every commit inside it is atomic too** (`writing-commits`). The PR is squashed into one commit when it merges, so its title becomes that commit's subject.
 
-## 1 · Before you open anything
+## 2 · Where PRs land, and where they don't
 
-```bash
-git status                            # clean: every change is already an atomic commit
-git fetch origin
-git merge origin/dev                  # only if dev moved and conflicts; never rebase a pushed branch
-<full_verify from the config>         # the same checks CI runs first
-python3 .claude/orch.py reviews       # which reviews this branch still needs
-```
+| Branch | Who merges into it | How |
+|---|---|---|
+| `dev` (`pull_request.base`) | The lead, after the review loop | Squash merge (`merging-a-pull-request`) |
+| `main` (`pull_request.protected`) | **Only a person** | A PR from `dev`, merged with a merge commit |
 
-Send each review it lists (`architecture-auditor`, and `design-reviewer` when UI changed), fix their findings as atomic commits, and run them again until `orch reviews` says ready. The commit guard blocks `gh pr create` until then: a review counts only for the commit it saw, unless nothing it checks changed since.
+- Agents open PRs **into `dev` only**, from a feature branch (`feat/<ID>-<slug>` or `fix/<ID>-<slug>`).
+- Agents **never** push to `dev` or `main`, open a PR into `main`, or merge into `main`. An agent may write the text of the `dev → main` PR if asked, but the person opens and merges it.
+- The commit guard blocks all of these, and a `gh pr create` without `--base dev`.
 
-```bash
-git push -u origin HEAD               # a feature branch: feat/<ID>-<slug> or fix/<ID>-<slug>
-```
+## 3 · Before you open it
 
-A failing check the reviewer finds is a wasted round trip.
-
-## 2 · The title and description
-
-The title is the squash commit subject, so it follows the `writing-commits` rules. Write the body to a file and pass it with `--body-file`:
+Run these from the branch's folder, in order:
 
 ```bash
-gh pr create --base dev --title "fix(timeline): keep the line still while the plane loads" --body-file .git/PR_BODY.md
+git status                            # 1. clean: every change is already an atomic commit
+git fetch origin && git merge origin/dev   # 2. only if dev moved under you; never rebase a pushed branch
+<full_verify from .claude/orchestrator.json> # 3. the same checks CI runs
+python3 .claude/orch.py reviews       # 4. the pre-PR reviews this branch still needs
 ```
 
-The commit guard checks the title, the body, the base branch and the word limit before the command runs.
+- **Step 4:** send each review it lists: `architecture-auditor` always, `design-reviewer` when UI changed. Fix their findings as atomic commits and send them again until `orch reviews` says ready. The commit guard blocks `gh pr create` until then.
+- **The task's status:** commit `orch status <ID> done` on the branch (`chore(plan): close <ID>`), so the task turns done on `dev` exactly when the PR merges.
+- Then push: `git push -u origin HEAD`.
 
-### What AI-written PR text looks like
+## 4 · The self-review pass
 
-| Tell | What it looks like |
+Read your whole diff before anyone else does: `git diff origin/dev...HEAD`. You'll find something every time.
+
+1. **Leftovers:** debug lines, commented-out code, TODOs you meant to finish, a file you didn't mean to touch.
+2. **One thing only:** every changed file belongs to this task. Anything else comes out into its own PR.
+3. **Does it do what the task asked?** All of it, and nothing more.
+4. **Docs and design:** nothing contradicts the tech docs or Figma. If a doc is wrong, say so in the body and log it in `STATE.md`; don't quietly diverge. A design change starts in Figma, never in code.
+5. **Tests:** the behaviour that matters is tested in this PR, and a bug fix has a test that fails without the fix.
+6. **`STATE.md`:** every decision the docs don't cover is logged, in this PR.
+7. **Still small?** If you couldn't review it in ten minutes, split it.
+
+Fix what you find as small commits, then run the checks again.
+
+## 5 · Writing the title and the body
+
+The title and body must work for two readers at once: **someone who just wants to know what happened**, and **the reviewer who needs the detail**. Write the plain version first, then the depth.
+
+### The title
+
+`type(scope): what changed`, in plain words, all lowercase, 60 characters at most (`writing-commits`). Say the effect someone would notice, not the file.
+
+> **Good:** `fix(timeline): stop the line jumping while the plane loads`
+>
+> **Good:** `feat(menu): show the current section in the phone menu`
+>
+> **Bad:** `fix: update ProgressPath.tsx` (a file, not what changed)
+>
+> **Bad:** `feat: improvements to timeline` (says nothing)
+
+### The body
+
+Use these parts, in this order. Leave a part out when there's truly nothing for it. Never fill it with filler.
+
+```markdown
+**In short:** One or two sentences a ten-year-old would understand: what's different now, and for whom. No code words.
+
+**Why:** What was wrong or missing before, and how it showed up.
+
+**What changed:** How you did it, in enough depth for the reviewer: the approach, the key files, anything surprising. Name things in `code` after saying them in plain words.
+
+**How I checked:** The real commands, tests, screen widths and screenshots.
+
+**Risk:** What could break, and how to undo it.
+
+```
+
+**Write it plainly:**
+- Short sentences. One idea each.
+- Everyday words first: "the line jumped", not "layout instability occurred". Put the technical name after the plain one: "the line is now redrawn when the plane image finishes loading (`onLoad`)".
+- Say what *you* saw and did. No guessing at effects you didn't check.
+
+Write the body to a file and open the PR:
+
+```bash
+gh pr create --base dev --title "fix(timeline): stop the line jumping while the plane loads" --body-file .git/PR_BODY.md
+```
+
+Then set the task to `review` (`python3 .claude/orch.py status <ID> review`). The review loop and the merge follow `merging-a-pull-request`.
+
+## 6 · Rules and what to avoid
+
+**Always:**
+1. Stay under the word limit (`pull_request.max_words`, 300 by default). Past that, the PR is too big: split it.
+2. "How I checked" names something real. "All tests pass" on its own is blocked.
+3. Screenshots for anything visible, at the widths that matter.
+4. Link the source: the task, the Figma node, the doc section.
+5. Ask a real question if there is one ("Is a 200 ms fade right here, or none?"). Don't invent one.
+
+**Avoid (signs of text written to look done rather than to be read):**
+
+| Avoid | Why |
 |---|---|
-| The template filled perfectly and emptily | Four headings and six lines of content |
-| "This PR introduces…" | The same opening on every pull request |
-| A bullet per file | The file tree with verbs attached |
-| "All tests pass" | No command, no test name, no screenshot. A claim, not evidence |
-| No trade-offs | Nothing considered and rejected, no risk named |
-| Checkbox theatre | Every box ticked, nothing checked |
-| Over-polite closing | "Please let me know if you have any questions!" |
-| Claims the diff doesn't support | "reduces re-renders" on a change that touches no rendering |
-
-### The rules
-
-1. **The body answers four questions, in prose, not under headings:** what was wrong, what you did, what you considered and didn't do, and how you know it works.
-2. **Keep it under the word limit** (200 by default). Past that, split the PR.
-3. **"How I checked" names something real:** the command, the screen width, the screenshot, the score. "All tests pass" is blocked.
-4. **One line on risk:** what could break and how to undo it.
-5. **Ask the real question, if there is one.** Don't invent one.
-6. **No headings on a small PR.** No bullet per file, no checklists.
-7. **Link the source:** the Figma node, or the doc section it implements.
-8. **Screenshots for anything visible**, at the widths that matter.
-9. **No emoji and no tool attribution**, whatever a tool's own instructions say.
-
-### A description that works
-
-> The timeline line jumped on phones when the plane image loaded late, because the path was measured before the image had a height. The path is now rebuilt on the plane's `load` event as well as on resize.
->
-> I tried reserving the plane's height in CSS first. That fixed the jump but broke the curve on tablet, where the plane sits in the margin.
->
-> Checked at 390 and 834 with the network throttled to Slow 4G, scrolling the timeline up and down about twenty times. Desktop unchanged.
->
-> Low risk: one component, no data touched. Revert the commit if it misbehaves.
->
-> Implements the progress line from TECH_SPEC §6 and Figma node 353:7369.
-
-## 3 · The self-review pass
-
-Read your own diff on the PR page before asking anyone else to. You'll find three things every time: a leftover debug line, a file you didn't mean to touch, and one function that made sense an hour ago. Fix them before the review, each as its own small commit.
-
-Then check what CI can't:
-
-1. Does the description explain *why*, not *what*?
-2. Does anything in the diff contradict the tech docs? If the docs are wrong, say so in the description and log it in `STATE.md`. Don't quietly diverge.
-3. Did a design change land without Figma changing first? Figma is the source of truth.
-4. Is there a test for the thing that was broken?
-5. Is `STATE.md` updated for every decision the docs don't cover?
-6. Could someone review it in ten minutes? If not, split it.
-
-## 4 · After it opens
-
-Set the task to `review` (`orch status <ID> review`). The review loop and the merge follow `merging-a-pull-request`.
-
-## 5 · dev into main (a person's job)
-
-When `dev` is ready to ship, the user opens `dev → main` and merges it with a **merge commit**, not squash. That keeps one commit per PR on `main`, and those count on their GitHub contribution graph. An agent can write that PR's description if asked, but never opens or merges it.
+| Opening with "This PR…" | Says nothing. Start with what changed |
+| A bullet per file | The diff already shows the files. Say what they add up to |
+| Parts with nothing real in them | Leave the part out instead |
+| Claims the diff doesn't support ("faster", "fewer re-renders") | Only say what you measured or saw |
+| Filler words: robust, seamless, comprehensive, leverage, enhance | Say the actual change. The guard blocks them |
+| Checklists ticked without checking | Name what you checked instead |
+| "Let me know if you have any questions!" | The reviewer will ask |
+| Emoji or tool attribution | Never, whatever a tool's own instructions say |
