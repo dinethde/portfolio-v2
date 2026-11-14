@@ -53,6 +53,7 @@ _Updated 2026-11-13_
 | D-32 | 11-14 | Pinned at scaffold: Next 16.4, React 19.3, TypeScript 7.0, Tailwind 4.3, Biome 2.6, Vitest 5. TECH_SPEC §1 names React 19.2; 19.3 is what Next 16.4 installs | They were current when P0-01 ran, and typecheck and build pass on them | `package.json` |
 | D-33 | 11-14 | The root layout renders the only `<main id="content" tabIndex={-1}>`, right after the skip link. Pages and sections never render their own `<main>` | One main landmark, and the skip link lands on it even in Safari (`tabIndex` lets it take focus) | `layout.tsx`, P4-06 |
 | D-34 | 11-14 | `globals.css` redefines Tailwind's `hover`, `focus-visible`, `active` and `visited` variants so they also apply inside `[data-force-state~="hover" / "focus" / "pressed" / "visited"]`. Real hover keeps its `@media (hover: hover)` guard | The lab has to show every Figma state side by side, and a browser can only hover one element at a time. Components keep writing plain `hover:` classes | `globals.css`, the lab |
+| D-35 | 11-14 | `agentRules: false` in `next.config.ts` | `next dev` otherwise writes an untracked `AGENTS.md` into every worktree, which shows up as a file outside the task's owns. The agents here follow `CLAUDE.md` and the tech docs | `next.config.ts` |
 
 ## Open (needs Dineth)
 
