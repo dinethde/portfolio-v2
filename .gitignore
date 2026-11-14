@@ -1,18 +1,41 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
+# deps and builds
+node_modules/
+.next/
+out/
+next-env.d.ts
+.wrangler/
+.dev.vars
+*.tsbuildinfo
 
-# Other files and folders
-.settings/
+# env (keep .env.example)
+.env
+.env.*
+!.env.example
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# tests
+test-results/
+playwright-report/
+blob-report/
+coverage/
+.lighthouseci/
+tests/visual/out/
 
-# Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
-# should NOT be excluded as they contain compiler settings and other important
-# information for Eclipse / Flash Builder.
+# Claude Code: personal settings and run state (the kit, settings.json and orchestrator.json ARE committed)
+.claude/settings.local.json
+.claude/state/
+.claude/worktrees/
+CLAUDE.local.md
+
+# editors and OS
+.DS_Store
+.obsidian/workspace*.json
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.ruff_cache/
+.mypy_cache/
