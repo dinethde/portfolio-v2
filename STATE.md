@@ -51,6 +51,7 @@ _Updated 2026-11-13_
 | D-30 | 11-14 | Figma is connected per project in `.mcp.json` under the name `Figma`. Every Figma tool that writes to a file (`use_figma`, `upload_assets`, `create_new_file`, `generate_*`, Code Connect, plugins, shaders) is denied in `.claude/settings.json` under both server names | The kit names its Figma tools `mcp__Figma__*`. Through the plugin alone they're `mcp__plugin_figma_figma__*`, so the builder had no Figma tools and the read-only rule blocked nothing. The reviewers only have `disallowedTools`, so these denies are what keeps them read-only | `.mcp.json`, `.claude/settings.json` |
 | D-31 | 11-14 | Playwright's web server is the standalone build (`node .next/standalone/server.js`, with `.next/static` and `public/` copied beside it), not `next start` | `next start` doesn't work with `output: "standalone"`, and e2e should run the same server as the container (D-02) | `playwright.config.ts` |
 | D-32 | 11-14 | Pinned at scaffold: Next 16.4, React 19.3, TypeScript 7.0, Tailwind 4.3, Biome 2.6, Vitest 5. TECH_SPEC §1 names React 19.2; 19.3 is what Next 16.4 installs | They were current when P0-01 ran, and typecheck and build pass on them | `package.json` |
+| D-33 | 11-14 | The root layout renders the only `<main id="content" tabIndex={-1}>`, right after the skip link. Pages and sections never render their own `<main>` | One main landmark, and the skip link lands on it even in Safari (`tabIndex` lets it take focus) | `layout.tsx`, P4-06 |
 
 ## Open (needs Dineth)
 
