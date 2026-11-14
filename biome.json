@@ -1,0 +1,334 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.6.7/schema.json",
+  "vcs": { "enabled": true, "clientKind": "git", "useIgnoreFile": true },
+  "files": {
+    "includes": [
+      "**",
+      "!.claude",
+      "!**/*.md",
+      "!scripts",
+      "!src/styles/design-tokens.css",
+      "!src/styles/figma-variables.json"
+    ]
+  },
+  "formatter": { "indentStyle": "space", "indentWidth": 2, "lineWidth": 100 },
+  "css": { "parser": { "tailwindDirectives": true } },
+  "assist": {
+    "actions": {
+      "source": {
+        "organizeImports": {
+          "level": "on",
+          "options": {
+            "groups": [
+              [":NODE:", ":PACKAGE:", "!react", "!react/**", "!react-dom", "!react-dom/**"],
+              ":BLANK_LINE:",
+              ["react", "react/**", "react-dom", "react-dom/**"],
+              ":BLANK_LINE:",
+              ":ALIAS:",
+              ":BLANK_LINE:",
+              ":PATH:"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": { "preset": "recommended" }
+  },
+  "overrides": [
+    {
+      "includes": ["src/components/sections/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/lib/github", "@/lib/github/**"],
+                    "message": "Sections get chart data from the page, not from lib/github (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/**", "!src/components/ui/**", "!src/components/sections/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/sections", "@/components/sections/**"],
+                    "message": "A component can't use a section (ARCHITECTURE §3)."
+                  },
+                  {
+                    "group": [
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/github",
+                      "@/lib/github/**",
+                      "@/lib/seo"
+                    ],
+                    "message": "Components get content and data through props (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/menu/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/**", "!@/components/ui/**", "!@/components/menu/**"],
+                    "message": "A component may use components/ui, not another group (ARCHITECTURE §3)."
+                  },
+                  {
+                    "group": [
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/github",
+                      "@/lib/github/**",
+                      "@/lib/seo"
+                    ],
+                    "message": "Components get content and data through props (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/contribution-chart/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/components/**",
+                      "!@/components/ui/**",
+                      "!@/components/contribution-chart/**"
+                    ],
+                    "message": "A component may use components/ui, not another group (ARCHITECTURE §3)."
+                  },
+                  {
+                    "group": [
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/github",
+                      "@/lib/github/**",
+                      "@/lib/seo"
+                    ],
+                    "message": "Components get content and data through props (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/timeline/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/components/**",
+                      "!@/components/ui/**",
+                      "!@/components/timeline/**"
+                    ],
+                    "message": "A component may use components/ui, not another group (ARCHITECTURE §3)."
+                  },
+                  {
+                    "group": [
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/github",
+                      "@/lib/github/**",
+                      "@/lib/seo"
+                    ],
+                    "message": "Components get content and data through props (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/project-card/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/components/**",
+                      "!@/components/ui/**",
+                      "!@/components/project-card/**"
+                    ],
+                    "message": "A component may use components/ui, not another group (ARCHITECTURE §3)."
+                  },
+                  {
+                    "group": [
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/github",
+                      "@/lib/github/**",
+                      "@/lib/seo"
+                    ],
+                    "message": "Components get content and data through props (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/footer/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components/**", "!@/components/ui/**", "!@/components/footer/**"],
+                    "message": "A component may use components/ui, not another group (ARCHITECTURE §3)."
+                  },
+                  {
+                    "group": [
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/github",
+                      "@/lib/github/**",
+                      "@/lib/seo"
+                    ],
+                    "message": "Components get content and data through props (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/components/ui/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "@/components/**",
+                      "!@/components/ui/**",
+                      "@/hooks",
+                      "@/hooks/**",
+                      "@/content",
+                      "@/content/**",
+                      "@/lib/**",
+                      "!@/lib/motion"
+                    ],
+                    "message": "Building blocks may only use lib/motion (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/hooks/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": ["@/components", "@/components/**", "@/content", "@/content/**"],
+                    "message": "Hooks may only use lib/ (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "includes": ["src/content/**", "src/lib/github/**"],
+      "linter": {
+        "rules": {
+          "style": {
+            "noRestrictedImports": {
+              "level": "error",
+              "options": {
+                "patterns": [
+                  {
+                    "group": [
+                      "react",
+                      "react/**",
+                      "react-dom",
+                      "react-dom/**",
+                      "motion",
+                      "motion/**",
+                      "@/components",
+                      "@/components/**",
+                      "@/hooks",
+                      "@/hooks/**"
+                    ],
+                    "message": "Data files use zod only, never React or components (ARCHITECTURE §3)."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
