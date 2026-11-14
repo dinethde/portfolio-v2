@@ -3,7 +3,7 @@ import "server-only";
 import fallback from "@/content/contributions.fallback.json";
 import { site } from "@/content/site";
 
-import { type Contributions, calendarRange, type RawCalendar, toContributions } from "./map";
+import { type Contributions, calendarRange, RawCalendar, toContributions } from "./map";
 
 const ENDPOINT = "https://api.github.com/graphql";
 const REVALIDATE_SECONDS = 21600;
@@ -29,11 +29,11 @@ export async function fetchCalendar(login: string, token: string, now: Date): Pr
     signal: AbortSignal.timeout(TIMEOUT_MS),
   });
   if (!response.ok) throw new Error(`GitHub responded ${response.status}`);
-  const body = (await response.json()) as { data?: RawCalendar; errors?: { message: string }[] };
+  const body = (await response.json()) as { data?: unknown; errors?: { message: string }[] };
   if (body.errors?.length || !body.data) {
     throw new Error(body.errors?.map((e) => e.message).join("; ") ?? "GitHub returned no data");
   }
-  return body.data;
+  return RawCalendar.parse(body.data);
 }
 
 /** Never throws: any failure returns the fallback file and logs `[contrib]`. */

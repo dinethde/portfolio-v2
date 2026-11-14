@@ -1,34 +1,46 @@
+import { z } from "zod";
+
 export type Level = 0 | 1 | 2 | 3 | 4;
 
-export interface ContributionDay {
-  date: string;
-  count: number;
-  level: Level;
-}
+export const ContributionDay = z.object({
+  date: z.string(),
+  count: z.number(),
+  level: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3), z.literal(4)]),
+});
+export type ContributionDay = z.infer<typeof ContributionDay>;
 
-export interface Contributions {
-  total: number;
-  weeks: ContributionDay[][];
-  fetchedAt: string;
-  source: "live" | "fallback";
-}
+export const Contributions = z.object({
+  total: z.number(),
+  weeks: z.array(z.array(ContributionDay)),
+  fetchedAt: z.string(),
+  source: z.enum(["live", "fallback"]),
+});
+export type Contributions = z.infer<typeof Contributions>;
 
-export interface RawCalendar {
-  user: {
-    contributionsCollection: {
-      contributionCalendar: {
-        totalContributions: number;
-        weeks: {
-          contributionDays: {
-            date: string;
-            contributionCount: number;
-            contributionLevel: string;
-          }[];
-        }[];
-      };
-    };
-  } | null;
-}
+/** The GraphQL `data` object, checked at the boundary. The level name is checked by `toLevel`. */
+export const RawCalendar = z.object({
+  user: z
+    .object({
+      contributionsCollection: z.object({
+        contributionCalendar: z.object({
+          totalContributions: z.number(),
+          weeks: z.array(
+            z.object({
+              contributionDays: z.array(
+                z.object({
+                  date: z.string(),
+                  contributionCount: z.number(),
+                  contributionLevel: z.string(),
+                }),
+              ),
+            }),
+          ),
+        }),
+      }),
+    })
+    .nullable(),
+});
+export type RawCalendar = z.infer<typeof RawCalendar>;
 
 export const WEEKS = 52;
 const DAY_MS = 86_400_000;

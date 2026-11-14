@@ -104,6 +104,14 @@ describe("getContributions", () => {
     expect((await load()).source).toBe("fallback");
   });
 
+  it("falls back when the response is missing weeks", async () => {
+    const data = {
+      user: { contributionsCollection: { contributionCalendar: { totalContributions: 1 } } },
+    };
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(Response.json({ data })));
+    expect((await load()).source).toBe("fallback");
+  });
+
   it("falls back on a timeout", async () => {
     vi.stubGlobal(
       "fetch",
