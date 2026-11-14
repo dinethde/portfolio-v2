@@ -15,7 +15,7 @@
     ".claude/orchestrator/config.py": "ef6a78e3aa651d90a69b8289f545cd0ab8731e359df63e3cff99b7ae2ba08ff8",
     ".claude/orchestrator/frontmatter.py": "588746ad16b80b96d2ccdc6167d92e8f0b6df9a101e6a10e4338da3fc541442a",
     ".claude/orchestrator/gitutil.py": "cfc6f1ed9fab0662bf31d0fab4c65ac13802c6c06c55d9004f8c3913166db5f5",
-    ".claude/orchestrator/hooks.py": "75801c9bf2eddb263e8ca8b87d29d2734d35b2c67efec21c1a01efcc98dacd59",
+    ".claude/orchestrator/hooks.py": "4020b07272798f4b634cd06cfd5825046e56620e00a7f3ab0c77c20afdd63d46",
     ".claude/orchestrator/patterns.py": "f57723ab051474091a3226e76bd3e09b639ed4d7f79e581195f006515387d550",
     ".claude/orchestrator/prs.py": "31fb49df1983f1b503bf749ce363e54f78a8d2e9fb00360dfa8d42dd72f8d711",
     ".claude/orchestrator/reviews.py": "bd4f364c584f557d862b28bbcf2e80616c924c873af4d47d8e9c73695c94a276",
@@ -29,6 +29,6 @@
     ".claude/skills/writing-review-comments/SKILL.md": "9bb3e9a59d403cccf2065b1fd0cd275a04df57e33283a99d431d394350da6bdd",
     ".claude/skills/writing-tasks/SKILL.md": "0eae00bfa5dd7735d8ad5ffeb062ef77d09eec58054968c7ff0c48032201b1b5"
   },
-  "kit_commit": "b52cbfc",
+  "kit_commit": "af3157c",
   "version": "0.3.0"
 }
