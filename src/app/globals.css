@@ -4,6 +4,46 @@
 /* No raw values in this file. Every colour, size, shadow and breakpoint is a token from
    design-tokens.css (generated from Figma — TECH_SPEC §2.1). */
 
+/* The lab shows every Figma state at once: anything inside data-force-state="hover focus …"
+   gets that state's styles. Same variants as Tailwind's, plus the attribute (STATE D-34). */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  [data-force-state~="hover"] & {
+    @slot;
+  }
+}
+
+@custom-variant focus-visible {
+  &:focus-visible {
+    @slot;
+  }
+  [data-force-state~="focus"] & {
+    @slot;
+  }
+}
+
+@custom-variant active {
+  &:active {
+    @slot;
+  }
+  [data-force-state~="pressed"] & {
+    @slot;
+  }
+}
+
+@custom-variant visited {
+  &:visited {
+    @slot;
+  }
+  [data-force-state~="visited"] & {
+    @slot;
+  }
+}
+
 @layer base {
   /* The page's default text is p2 in the rounded family (DESIGN.md "Typography"). */
   html {
