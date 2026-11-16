@@ -65,3 +65,5 @@ _Updated 2026-11-13_
 - **O4** The `resume.pdf` file.
 - **O5** Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback.
 - **O6** Check that Cloudflare Containers is out of beta and the plan fits before launch.
+- **O7** Figma gives the neighbouring Enterprise Design System and Apps Store cards the same glow (Warm right), but the card's note says neighbours differ, and the content schema enforces that. Which glow should one of them get?
+- **O8** The About moodboard (Figma 93:2213) is hidden, so the desktop About has no photos, while P4-04 mentions "the photos". Keep About without photos?
