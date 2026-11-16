@@ -10,6 +10,11 @@ export default defineConfig({
         find: /^.+\.(png|jpe?g|webp|avif|gif|svg)$/,
         replacement: new URL("./tests/unit/stubs/image.ts", import.meta.url).pathname,
       },
+      // `server-only` exists only inside Next's build; in tests it is an empty module.
+      {
+        find: /^server-only$/,
+        replacement: new URL("./tests/unit/stubs/server-only.ts", import.meta.url).pathname,
+      },
       { find: "@", replacement: new URL("./src", import.meta.url).pathname },
     ],
   },

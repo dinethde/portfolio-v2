@@ -168,7 +168,8 @@ export const About = z.strictObject({
   header: SectionHeading,
   bio: z.array(RichParagraph).min(1),
   tools: z.strictObject({ title: Text, sentence: ToolSentence }),
-  interests: z.strictObject({ title: Text, text: RichParagraph }),
+  /** A bulleted list in Figma, one item per line. */
+  interests: z.strictObject({ title: Text, items: z.array(Text).min(1) }),
   photos: z.array(Picture),
 });
 export type About = z.infer<typeof About>;

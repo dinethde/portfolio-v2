@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { Image, Projects, Run, Site, TimelineEntry, ToolSentence } from "@/content/schema";
+import { About, Image, Projects, Run, Site, TimelineEntry, ToolSentence } from "@/content/schema";
 
 // Every content module validates itself with Schema.parse() when it's imported, so a typo fails the
 // build. Importing each one here is the check; a new content file is picked up without editing this.
@@ -123,5 +123,22 @@ describe("ToolSentence", () => {
       ]).success,
     ).toBe(true);
     expect(ToolSentence.safeParse([{ kind: "text", text: "Nothing" }]).success).toBe(false);
+  });
+});
+
+describe("About", () => {
+  const about = {
+    header: { eyebrow: "About", title: "The person behind the pixels" },
+    bio: [[{ text: "You already know my name." }]],
+    tools: { title: "Tools I use?", sentence: [{ kind: "pill", label: "React" }] },
+    photos: [],
+  };
+
+  it("lists interests as separate items, the way Figma shows them", () => {
+    const interests = { title: "Things I'm interested in", items: ["Fintech", "HFT"] };
+    expect(About.parse({ ...about, interests }).interests.items).toEqual(["Fintech", "HFT"]);
+    expect(
+      About.safeParse({ ...about, interests: { title: "x", text: [{ text: "Fintech" }] } }).success,
+    ).toBe(false);
   });
 });
