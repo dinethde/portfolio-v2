@@ -56,6 +56,8 @@ _Updated 2026-11-13_
 | D-35 | 11-14 | `agentRules: false` in `next.config.ts` | `next dev` otherwise writes an untracked `AGENTS.md` into every worktree, which shows up as a file outside the task's owns. The agents here follow `CLAUDE.md` and the tech docs | `next.config.ts` |
 | D-36 | 11-14 | Content: each `src/content/*.ts` module runs `Schema.parse()` on its own data at import, and every object schema is strict. Run tones are `strong` (the darker key words, P2), `brand`, `secondary` and `error`; no tone means the paragraph's colour. Images in content must be imports from `src/assets/`. The menu labels and the footer line get their own modules, `nav.ts` and `contact.ts` | A typo fails the build and the content test without a list of modules to keep in sync. Strict objects turn a misspelt key into an error instead of a silently missing field. TECH_SPEC §11 names the run shape but not the tone values | `src/content/`, P3-02 |
 | D-37 | 11-14 | `server-only` is not installed as a package. Next resolves `import "server-only"` itself at build time, and Vitest aliases it to an empty stub (`tests/unit/stubs/server-only.ts`) | The npm package throws outside a React server build, so tests would need a stub either way, and the app doesn't need the package. Confirm the build still resolves it once P4-06 imports `lib/github` | `vitest.config.ts`, `src/lib/github/` |
+| D-38 | 11-16 | Figma exports in `src/assets/`: raw images are downsized to 4× their largest slot (timeline thumbs and snapshots 320px, logos 112px), keeping their real format. Timeline logos are saved as plain rasters, and the component draws the circle and its `outline-neutral-main-active` border. Monochrome icons, the plane and the flight path use `currentColor` | The Figma originals were up to 4096px and 5 MB each (about 30 MB in total). The logo SVGs only wrapped a raster in a styled circle, and that styling is already a token | `src/assets/`, P2-05 |
+| D-39 | 11-16 | Biome skips `src/assets/` | Biome 2.6 lints SVG files and asks for a `<title>` in each. They're artwork exported from Figma; the component that shows one gives it its accessible name or hides it (TECH_SPEC §5) | `biome.json` |
 
 ## Open (needs Dineth)
 
@@ -65,3 +67,5 @@ _Updated 2026-11-13_
 - **O4** The `resume.pdf` file.
 - **O5** Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback.
 - **O6** Check that Cloudflare Containers is out of beta and the plan fits before launch.
+- **O7** Figma gives the neighbouring Enterprise Design System and Apps Store cards the same glow (Warm right), but the card's note says neighbours differ, and the content schema enforces that. Which glow should one of them get?
+- **O8** The About moodboard (Figma 93:2213) is hidden, so the desktop About has no photos, while P4-04 mentions "the photos". Keep About without photos?
