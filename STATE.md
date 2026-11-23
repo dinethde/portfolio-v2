@@ -69,6 +69,7 @@ _Updated 2026-11-23_
 | D-48 | 11-23 | Every icon Figma draws is its SVG artwork, including GitHub, LinkedIn and Resume, even where Lucide has a similar icon. Lucide stays installed for icons Figma doesn't draw | Lucide's versions are outline drawings that don't match the Figma glyphs, and Figma wins. TECH_SPEC §1 and DESIGN.md "Icons" now say the same | `src/components/ui/icons/`, TECH_SPEC §1, DESIGN.md |
 | D-49 | 11-23 | Component prop types copy the shape of their content type (for example `RichTextRun` mirrors `Run`, `SiteMenuLink` mirrors a nav item) instead of importing it. A focused menu link uses the default dark text, even the active one | Components can't import `content/`, and the shapes match by structure, so pages pass content straight in. Figma 347:9273 draws focus in the default colour | `components/`, P1-05, P2-02 |
 | D-50 | 11-23 | Off-scale pixel values are allowed where they copy a Figma measurement of artwork or a component's own layout: the Story underline's rotated box (`-left-14 top-110 w-313 h-61`, `rotate-[4.79deg]`), the pill's 6px icon gap, the hero line's 2px gap | They're Figma's own numbers for that one element, not general spacing, so forcing them onto the scale would move the design | `SectionHeader.tsx`, `Pill.tsx` |
+| D-52 | 11-24 | `max_parallel` goes from 3 to 6 worker tasks at a time | Dineth asked for the fastest route to launch; the plan's remaining tasks rarely share files, and each runs in its own worktree on its own lab port (D-51) | `.claude/orchestrator.json` |
 
 ## Open (needs Dineth)
 
