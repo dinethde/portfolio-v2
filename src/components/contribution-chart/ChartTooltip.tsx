@@ -35,7 +35,7 @@ export function ChartTooltip({ children }: ChartTooltipProps) {
       <div
         aria-hidden="true"
         style={tip ? { left: tip.left, top: tip.top - 8 } : undefined}
-        className={`pointer-events-none absolute z-10 w-max -translate-x-1/2 -translate-y-full rounded-4 bg-fill-neutral-dark-hover px-8 py-4 font-rounded text-p3 whitespace-nowrap text-txt-white-p1-active transition-opacity duration-150 ease-soft motion-reduce:transition-none ${tip ? "opacity-100" : "opacity-0"}`}
+        className={`pointer-events-none absolute z-10 w-max -translate-x-1/2 -translate-y-full rounded-4 bg-fill-neutral-dark-active px-8 py-4 font-rounded text-p3 font-medium whitespace-nowrap text-txt-white-p1-active transition-opacity duration-150 ease-soft motion-reduce:transition-none ${tip ? "opacity-100" : "opacity-0"}`}
       >
         {tip?.text}
       </div>
