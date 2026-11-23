@@ -37,7 +37,7 @@ Each layer only uses the layers below it.
 
 | Layer          | Folder                    | May use                                                 | Must not use                           |
 | -------------- | ------------------------- | ------------------------------------------------------- | -------------------------------------- |
-| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component | —                                      |
+| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component and read `content/` and `assets/` (§8) | —                                      |
 | Section        | `components/sections/`    | components, hooks, `content/`                           | `lib/github`                           |
 | Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`                    | other groups, `content/`, `lib/github` |
 | Building block | `components/ui/`          | `lib/motion`, `assets/` (decorative art)                | everything above it                    |
