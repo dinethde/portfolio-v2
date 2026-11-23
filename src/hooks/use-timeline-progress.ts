@@ -160,11 +160,16 @@ export function useTimelineProgress(
         else delete dot.dataset.ping;
       });
 
+      // The path only holds the new geometry after React renders it, so the marker waits a frame.
       const path = pathRef.current;
       let marker: Point | null = null;
       if (!reduceMotion && path && geometry.d) {
-        const at = path.getPointAtLength(progress * path.getTotalLength());
-        marker = { x: at.x, y: at.y };
+        if (path.getAttribute("d") === geometry.d) {
+          const at = path.getPointAtLength(progress * path.getTotalLength());
+          marker = { x: at.x, y: at.y };
+        } else {
+          schedule();
+        }
       }
       setState({ ...geometry, progress, marker });
     };
