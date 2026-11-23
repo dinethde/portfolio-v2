@@ -182,7 +182,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 ## 6. Motion
 
-- **Library:** `motion/react`. The timing values live in `src/lib/motion.ts` and follow DESIGN.md "Motion".
+- **Library:** `motion/react`. The timing values live in `src/lib/motion.ts` and follow DESIGN.md "Motion". Plain CSS transitions (hover and colour changes) use Tailwind's `duration-*` with the `ease-soft` token, at the same values.
 - **Server first:** only the parts that move are client components (`"use client"`): `Reveal`, `RevealGroup`, `ProgressPath`, the menu and the chart tooltip.
 - **Only animate** `transform`, `opacity` and SVG `stroke-dashoffset`. Never animate layout properties.
 - **Entrances:** use `useInView({ once: true, amount: 0.15 })` inside `Reveal`.

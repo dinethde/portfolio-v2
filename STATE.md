@@ -68,6 +68,7 @@ _Updated 2026-11-23_
 | D-47 | 11-23 | Fixed accessibility text (the hidden "(opens in new tab)", the menu's `aria-label`, the skip link) lives in the component that renders it, not in `src/content/` | It isn't page copy, it never changes, and `ui/` can't import `content/` (ARCHITECTURE §3) | `Pill.tsx`, `SiteMenu.tsx`, `layout.tsx` |
 | D-48 | 11-23 | Every icon is the Figma artwork, none from Lucide, including GitHub, LinkedIn and Resume | Lucide's versions are outline drawings that don't match the Figma glyphs, and Figma wins | `src/components/ui/icons/` |
 | D-49 | 11-23 | Component prop types copy the shape of their content type (for example `RichTextRun` mirrors `Run`, `SiteMenuLink` mirrors a nav item) instead of importing it. A focused menu link uses the default dark text, even the active one | Components can't import `content/`, and the shapes match by structure, so pages pass content straight in. Figma 347:9273 draws focus in the default colour | `components/`, P1-05, P2-02 |
+| D-50 | 11-23 | Off-scale pixel values are allowed where they copy a Figma measurement of artwork or a component's own layout: the Story underline's rotated box (`-left-14 top-110 w-313 h-61`, `rotate-[4.79deg]`), the pill's 6px icon gap, the hero line's 2px gap | They're Figma's own numbers for that one element, not general spacing, so forcing them onto the scale would move the design | `SectionHeader.tsx`, `Pill.tsx` |
 
 ## Open (needs Dineth)
 
