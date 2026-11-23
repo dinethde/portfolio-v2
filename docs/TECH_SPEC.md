@@ -50,7 +50,7 @@ portfolio-v2/
 │  │  ├─ footer/                   FooterCta, FooterCard
 │  │  └─ sections/                 IntroSection, StorySection, ProjectsSection, AboutSection, ContactSection
 │  ├─ content/                     All words and project data: site, intro, timeline, projects, about,
-│  │                               schema.ts (zod), contributions.fallback.json
+│  │                               nav, contact, schema.ts (zod), contributions.fallback.json
 │  ├─ lib/
 │  │  ├─ github/                   contributions.ts (server only) · map.ts (pure mapping, unit-tested)
 │  │  ├─ motion.ts                 Easing, durations, entrance variants
