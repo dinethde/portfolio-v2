@@ -63,6 +63,7 @@ export function TimelineEntry({
         </div>
         {projects.length > 0 && (
           <div className="flex w-full flex-col gap-12">
+            {/* -m-8 cancels the row padding so the thumbs sit on the content edge, as in Figma. */}
             {projects.map((project) => (
               <ProjectRow key={project.title} {...project} className="-m-8" />
             ))}
