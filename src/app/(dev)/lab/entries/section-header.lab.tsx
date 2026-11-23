@@ -10,7 +10,12 @@ const heading = "Artistic Designer &\nSoftware Engineer";
 export function Lab() {
   return (
     <div className="flex max-w-700 flex-col gap-48">
-      <SectionHeader variant="hero" eyebrow="Hi, I'm Dineth De Silva" title={heading} icons="✌🏻 👀" />
+      <SectionHeader
+        variant="hero"
+        eyebrow="Hi, I'm Dineth De Silva"
+        title={heading}
+        icons="✌🏻 👀"
+      />
       <SectionHeader
         variant="section"
         eyebrow="Hi, I'm Dineth De Silva"

@@ -1,7 +1,7 @@
 import Image from "next/image";
 
-import underlineArt from "@/assets/story-underline.svg";
 import heroLine from "@/assets/hero-line.svg";
+import underlineArt from "@/assets/story-underline.svg";
 
 import type { SectionHeaderProps } from "./SectionHeader.types";
 
