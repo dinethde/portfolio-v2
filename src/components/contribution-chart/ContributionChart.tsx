@@ -18,8 +18,10 @@ const levelBg = [
 
 // Cells fade in column by column on load: @starting-style (the `starting:` variant) plays once, and
 // each column delays its cells by 11ms more than the one before it (DESIGN.md "Motion").
-const cell =
-  "box-border size-12 rounded-2 border border-contribution_chart-cell-border transition-opacity duration-300 ease-soft starting:opacity-0 motion-reduce:transition-none";
+const fade =
+  "transition-opacity duration-300 ease-soft starting:opacity-0 motion-reduce:transition-none";
+const legendCell = `box-border size-12 rounded-[2px] ${fade}`;
+const gridCell = `box-border size-12 rounded-[2px] border-[0.5px] border-contribution_chart-cell-border opacity-80 ${fade}`;
 const COLUMN_DELAY_MS = 11;
 
 export function ContributionChart({ contributions, title, className }: ContributionChartProps) {
@@ -52,7 +54,7 @@ export function ContributionChart({ contributions, title, className }: Contribut
                       key={day.date}
                       data-tip={formatTooltip(day.count, day.date)}
                       style={{ transitionDelay: `${index * COLUMN_DELAY_MS}ms` }}
-                      className={`${cell} ${levelBg[day.level]}`}
+                      className={`${gridCell} ${levelBg[day.level]}`}
                     />
                   ))}
                 </div>
@@ -67,7 +69,7 @@ export function ContributionChart({ contributions, title, className }: Contribut
           Less
           <span className="flex gap-4">
             {levelBg.map((bg) => (
-              <span key={bg} className={`${cell} ${bg}`} />
+              <span key={bg} className={`${legendCell} ${bg}`} />
             ))}
           </span>
           More
