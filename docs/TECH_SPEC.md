@@ -12,7 +12,7 @@ Sections are numbered so a task can point straight at one (for example "TECH_SPE
 |---|---|---|
 | Framework | **Next.js 16** (App Router, React 19.2, TypeScript `strict`) | Server Components keep the page almost free of JavaScript, and it has built-in SEO tools |
 | Styling | **Tailwind CSS v4** (`@tailwindcss/postcss`) | Figma variables become Tailwind theme variables and utility classes (§2.1) |
-| Icons | **lucide-react**, plus monochrome SVGs exported from Figma where Lucide has no match | One icon style; the brand and tech logos come from Figma |
+| Icons | Monochrome SVGs exported from Figma wherever Figma draws the icon; **lucide-react** only for an icon Figma doesn't draw | Figma is the source of truth, so its glyphs win; Lucide fills gaps in the same line style |
 | Motion | **motion** (`motion/react`) | Scroll progress, entrances and reduced-motion support |
 | Validation | **zod** | Checks the content files and the GitHub response |
 | Package manager and scripts | **Bun** (`bun install`, `bun run …`) | Fast installs and one tool for scripts. The production server still runs on Node (see §8) |
