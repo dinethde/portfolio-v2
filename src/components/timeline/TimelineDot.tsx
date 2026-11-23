@@ -9,7 +9,7 @@ const circle =
   "absolute inset-3 rounded-full border-[1.5px] border-solid border-fill-neutral-strong-active bg-surface-neutral-light-active transition-[background-color,border-color,box-shadow] duration-300 motion-reduce:transition-none " +
   "data-[active=true]:border-fill-secondary-main-active data-[active=true]:bg-fill-secondary-main-active data-[active=true]:shadow-[0_0_8px_2px_var(--color-fill-secondary-light-active)] " +
   "before:pointer-events-none before:absolute before:-inset-8 before:rounded-full before:bg-fill-secondary-main-active before:opacity-0 before:content-[''] " +
-  "data-[ping=true]:before:animate-[ping_600ms_var(--ease-soft)_1] motion-reduce:before:hidden";
+  "data-[ping=true]:before:opacity-75 data-[ping=true]:before:animate-[ping_600ms_ease-out_1_forwards] motion-reduce:before:hidden";
 
 export function TimelineDot({ className }: TimelineDotProps) {
   return (
