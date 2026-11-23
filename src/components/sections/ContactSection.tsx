@@ -32,7 +32,7 @@ export function ContactSection({ className }: ContactSectionProps) {
     <section
       id="contact"
       aria-label="Contact"
-      className={`mx-auto flex w-full max-w-750 flex-col items-center gap-32 ${className ?? ""}`}
+      className={`mx-auto flex w-full max-w-750 flex-col items-center gap-96 ${className ?? ""}`}
     >
       <FooterCta line={contact.line} />
       <FooterCard
