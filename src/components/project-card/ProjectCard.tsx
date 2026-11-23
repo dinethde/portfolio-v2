@@ -27,24 +27,26 @@ export function ProjectCard({
         {/* STATE D-40: no icon artwork yet, so the header shows Figma's dark placeholder square. */}
         <span
           aria-hidden="true"
-          className="size-32 shrink-0 rounded-8 bg-fill-neutral-dark-active"
+          className="size-32 shrink-0 rounded-4 bg-fill-neutral-dark-active"
         />
         <h3 className="min-w-0 flex-1 font-sans text-h1 font-medium text-txt-neutral-p1-active">
           {title}
         </h3>
         {tag !== undefined && (
-          <span className="font-rounded text-p2 font-medium text-txt-neutral-p1-active">{tag}</span>
+          <span className="font-rounded text-p2 font-medium text-txt-neutral-p2-active">{tag}</span>
         )}
       </div>
-      <div className="relative aspect-[6/5] w-full overflow-hidden rounded-20 bg-card-default-bg">
+      <div className="relative aspect-[6/5] w-full">
+        {/* The mat and the glow sit below the page content (-z-20, -z-10), so a glow bleeding past one card never tints a neighbour's text. */}
+        <span aria-hidden="true" className="absolute inset-0 -z-20 rounded-20 bg-card-default-bg" />
         <ProjectGlow glow={glow} />
-        <div className="absolute inset-x-28 inset-y-60 transition-transform duration-300 ease-soft group-hover:-translate-y-4 motion-reduce:transition-none">
+        <div className="absolute inset-x-[4.67%] inset-y-[12%] transition-transform duration-300 ease-soft group-hover:-translate-y-4 in-data-[force-state~=hover]:-translate-y-4 motion-reduce:transition-none">
           <Image
             src={image.src}
             alt={image.alt}
             fill
             sizes="(min-width: 600px) 544px, 90vw"
-            className="rounded-8 object-cover object-top shadow-card"
+            className="rounded-4 border border-outline-neutral-main-active object-cover object-top"
           />
         </div>
       </div>
