@@ -36,11 +36,25 @@ class CheckId(unittest.TestCase):
 
 class PlaywrightEnv(unittest.TestCase):
     def test_drops_ci_so_the_dev_server_is_reused(self) -> None:
-        env = lab_shot.playwright_env("smoke", {"CI": "1", "PATH": "/bin"})
+        env = lab_shot.playwright_env("smoke", {"CI": "1", "PATH": "/bin"}, 3456)
         self.assertNotIn("CI", env)
+        self.assertEqual(env["PLAYWRIGHT_BASE_URL"], "http://localhost:3456")
         self.assertEqual(env["PATH"], "/bin")
         self.assertEqual(env["LAB_ID"], "smoke")
         self.assertEqual(env["LAB_OUT"], "tests/visual/out")
+
+
+class LabPort(unittest.TestCase):
+    def test_uses_lab_port_when_set(self) -> None:
+        self.assertEqual(lab_shot.lab_port(Path("/a"), {"LAB_PORT": "4100"}), 4100)
+
+    def test_gives_each_checkout_its_own_stable_port(self) -> None:
+        main = lab_shot.lab_port(Path("/repo"), {})
+        worktree = lab_shot.lab_port(Path("/repo/.claude/worktrees/P2-06"), {})
+        self.assertEqual(main, lab_shot.lab_port(Path("/repo"), {}))
+        self.assertNotEqual(main, worktree)
+        for port in (main, worktree):
+            self.assertTrue(3100 <= port < 3900)
 
 
 if __name__ == "__main__":
