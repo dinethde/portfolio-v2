@@ -79,8 +79,12 @@ export type Nav = z.infer<typeof Nav>;
 
 export const Intro = z.strictObject({
   greeting: Text,
+  /** The emoji beside the greeting (Figma 111:4646). */
+  greetingEmoji: z.strictObject({ wave: Text, eyes: Text }),
   paragraphs: z.array(RichParagraph).min(1),
   cta: RichParagraph,
+  /** The line above the contribution chart. */
+  chartTitle: Text,
 });
 export type Intro = z.infer<typeof Intro>;
 

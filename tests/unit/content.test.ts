@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { About, Image, Projects, Run, Site, TimelineEntry, ToolSentence } from "@/content/schema";
+import { About, Image, Intro, Projects, Run, Site, TimelineEntry, ToolSentence } from "@/content/schema";
 
 // Every content module validates itself with Schema.parse() when it's imported, so a typo fails the
 // build. Importing each one here is the check; a new content file is picked up without editing this.
@@ -140,5 +140,21 @@ describe("About", () => {
     expect(
       About.safeParse({ ...about, interests: { title: "x", text: [{ text: "Fintech" }] } }).success,
     ).toBe(false);
+  });
+});
+
+describe("Intro", () => {
+  const intro = {
+    greeting: "Hi",
+    greetingEmoji: { wave: "✌🏻", eyes: "👀" },
+    paragraphs: [[{ text: "Hello." }]],
+    cta: [{ text: "Say hi" }],
+    chartTitle: "My chart",
+  };
+
+  it("needs the chart title and the greeting emoji", () => {
+    expect(Intro.safeParse(intro).success).toBe(true);
+    expect(Intro.safeParse({ ...intro, chartTitle: undefined }).success).toBe(false);
+    expect(Intro.safeParse({ ...intro, greetingEmoji: undefined }).success).toBe(false);
   });
 });
