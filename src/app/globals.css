@@ -44,6 +44,14 @@
   }
 }
 
+/* The keyboard focus ring from Figma: a 2px gap in the surface colour, then a 2px blue ring.
+   The transparent outline keeps it visible in forced-colours mode, where box shadows are dropped.
+   Use it as `focus-visible:focus-ring`. */
+@utility focus-ring {
+  outline: 2px solid transparent;
+  @apply ring-2 ring-fill-secondary-main-active ring-offset-2 ring-offset-surface-neutral-light-active;
+}
+
 @layer base {
   /* The page's default text is p2 in the rounded family (DESIGN.md "Typography"). */
   html {
