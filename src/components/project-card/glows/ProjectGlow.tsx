@@ -34,16 +34,21 @@ export function ProjectGlow({ glow }: ProjectGlowProps) {
       aria-hidden="true"
       className="pointer-events-none absolute -z-10 -top-[2.2%] -left-[3%] h-[104.4%] w-[106%]"
     >
-      <div className="relative size-full transition-transform duration-300 ease-soft group-hover:scale-[1.04] in-data-[force-state~=hover]:scale-[1.04] motion-reduce:transition-none">
-        {layers[glow].map((src, index) => (
-          <Image
-            key={positions[index]}
-            src={src}
-            alt=""
-            unoptimized
-            className={`absolute max-w-none ${positions[index]}`}
-          />
-        ))}
+      <div className="size-full transition-transform duration-300 ease-soft group-hover:scale-[1.04] in-data-[force-state~=hover]:scale-[1.04] motion-reduce:transition-none">
+        {/* Figma blurs the clipped frame as one piece (~22.5px), so the edge stays soft. */}
+        <div className="size-full blur-[22.5px]">
+          <div className="relative size-full overflow-hidden rounded-20">
+            {layers[glow].map((src, index) => (
+              <Image
+                key={positions[index]}
+                src={src}
+                alt=""
+                unoptimized
+                className={`absolute max-w-none ${positions[index]}`}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
