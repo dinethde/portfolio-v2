@@ -174,7 +174,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
   - The open panel traps focus. Esc, an outside click or a link click closes it, and focus goes back to the trigger.
 - **Chart:** a `<figure>` with the total as its `<figcaption>`, and `role="img"` with an `aria-label` on the grid. The tooltip is a pointer extra; it's never the only way to get the information.
 - **Timeline:** an `<ol>`. Decorative SVG (the rail, plane, glow and photo fan) gets `aria-hidden="true"`.
-- **External links:** `target="_blank" rel="noopener noreferrer"`, plus hidden "(opens in new tab)" text.
+- **External links:** `target="_blank" rel="noopener noreferrer"`, plus hidden "(opens in new tab)" text. Fixed accessibility text like this lives in the component that renders it (STATE D-47).
 - Keyboard focus is always visible, using the focus tokens from Figma.
 - Section anchors get `scroll-margin-top` (the menu pill height + 16px) on tablet and phone.
 
@@ -183,7 +183,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 ## 6. Motion
 
 - **Library:** `motion/react`. The timing values live in `src/lib/motion.ts` and follow DESIGN.md "Motion".
-- **Server first:** only the parts that move are client components (`"use client"`): `Reveal`, `ProgressPath`, the menu and the chart tooltip.
+- **Server first:** only the parts that move are client components (`"use client"`): `Reveal`, `RevealGroup`, `ProgressPath`, the menu and the chart tooltip.
 - **Only animate** `transform`, `opacity` and SVG `stroke-dashoffset`. Never animate layout properties.
 - **Entrances:** use `useInView({ once: true, amount: 0.15 })` inside `Reveal`.
 - **Timeline progress** (`ProgressPath` + `useTimelineProgress`):
@@ -283,7 +283,7 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 
 - **Server Components by default.** Client components are only the parts listed in §6.
 - **Images:**
-  - Use `next/image` with `sizes` set, AVIF then WebP.
+  - Use `next/image` with `sizes` set, AVIF then WebP. SVG artwork (the brand mark) is the exception: `unoptimized`, since it's already vector.
   - Every image has a width and height. Load lazily below the fold, and eagerly only for what the first screen shows.
   - Add `sharp` so the standalone server can optimise images.
 - **Fonts:**

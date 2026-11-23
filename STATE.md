@@ -10,10 +10,10 @@ Where the project is right now, and every decision that **Figma, `docs/TECH_SPEC
 
 ## Now
 
-_Updated 2026-11-13_
+_Updated 2026-11-23_
 
-- **Done:** the docs (`docs/DESIGN.md`, `ARCHITECTURE.md`, `TECH_SPEC.md`), the Figma → Tailwind token pipeline (`src/styles/design-tokens.css`), `src/app/globals.css`, the orchestrator kit (installed with `orch sync`) and the plan for the Next.js stack (`plan/`, 34 tasks).
-- **Next:** `/run-plan`, starting with P0-01. There's no `package.json` yet.
+- **Done:** phases P0 and P1, plus P2-01, P2-02, P3-01 and P3-02. On `dev`: the button, pills, icons, brand mark, section header, rich text, reveal motion, content files and the desktop side menu.
+- **Next:** `/run-plan` for the rest of phase P2 (phone menu, chart, timeline, project card, footer).
 
 ## Decisions not covered by Figma or the docs
 
@@ -65,6 +65,9 @@ _Updated 2026-11-13_
 | D-44 | 11-23 | The staggered entrance is its own client component, `RevealGroup`, not `Reveal.Group`. Children find their group through a context. Both take `as` (`div`, `section`, `ol`, `ul`, `li`), and both add `motion-reduce:` classes so content shows on the first paint under reduced motion | A Server Component can't dot into a client module (`Reveal.Group` throws on the server), and one component per file. The server render doesn't know the motion preference, so the CSS covers it until React does | `Reveal.tsx`, `RevealGroup.tsx`, P1-06 |
 | D-45 | 11-23 | The desktop side menu sits `top-100` with its left edge at `max(32px, 50% − 554px)`: x=166 at 1440 as in Figma 296:7565, and never closer than 32px at narrower desktop widths. 554 is a layout offset from the page centre, not a step on the spacing scale | Figma only draws the 1440 frame; a fixed 166px would overlap the column near the 1100px breakpoint | `SiteMenu.tsx`, P2-02 |
 | D-46 | 11-23 | Menu links have no Visited state, and their focus is Figma's own 2px blue outline (347:9273), not the shared `focus-ring` | Every menu link is an in-page anchor, so `:visited` would leave labels purple for good and fight "blue means you are here". Figma's Visited variant also contradicts its own note. Confirm with Dineth (O9) | `MenuLink.tsx`, P2-02 |
+| D-47 | 11-23 | Fixed accessibility text (the hidden "(opens in new tab)", the menu's `aria-label`, the skip link) lives in the component that renders it, not in `src/content/` | It isn't page copy, it never changes, and `ui/` can't import `content/` (ARCHITECTURE §3) | `Pill.tsx`, `SiteMenu.tsx`, `layout.tsx` |
+| D-48 | 11-23 | Every icon is the Figma artwork, none from Lucide, including GitHub, LinkedIn and Resume | Lucide's versions are outline drawings that don't match the Figma glyphs, and Figma wins | `src/components/ui/icons/` |
+| D-49 | 11-23 | Component prop types copy the shape of their content type (for example `RichTextRun` mirrors `Run`, `SiteMenuLink` mirrors a nav item) instead of importing it. A focused menu link uses the default dark text, even the active one | Components can't import `content/`, and the shapes match by structure, so pages pass content straight in. Figma 347:9273 draws focus in the default colour | `components/`, P1-05, P2-02 |
 
 ## Open (needs Dineth)
 

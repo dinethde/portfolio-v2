@@ -40,7 +40,7 @@ Each layer only uses the layers below it.
 | Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site` | —                                      |
 | Section        | `components/sections/`    | components, hooks, `content/`                           | `lib/github`                           |
 | Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`                    | other groups, `content/`, `lib/github` |
-| Building block | `components/ui/`          | `lib/motion`                                            | everything above it                    |
+| Building block | `components/ui/`          | `lib/motion`, `assets/` (decorative art)                | everything above it                    |
 | Hook           | `hooks/`                  | `lib/`                                                  | components                             |
 | Data           | `content/`, `lib/github/` | `zod`; `content/` also imports `assets/` and the `next/image` types | React, components                      |
 
@@ -56,6 +56,7 @@ Everything is a Server Component unless it has to react to the browser.
 | `SiteMenu` (with `MenuPill`, `MenuPanel`) | Knows which section is in view, opens and closes          |
 | `ProgressPath`                            | Follows the scroll and draws the timeline line            |
 | `Reveal`                                  | Plays the entrance once, when the content comes into view |
+| `RevealGroup`                             | Staggers the entrances of the `Reveal`s inside it         |
 | `ChartTooltip`                            | Follows the pointer over the chart                        |
 
 Keep the `"use client"` line on these leaf files only, never on a section or on the page.
