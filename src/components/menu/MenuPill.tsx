@@ -5,7 +5,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type { KeyboardEvent } from "react";
 import { useRef, useState } from "react";
 
-import { useActiveSection } from "@/hooks/use-active-section";
 import { duration, ease } from "@/lib/motion";
 
 import { MenuPanel } from "./MenuPanel";
@@ -24,8 +23,7 @@ function focusFirstLink(node: HTMLElement | null) {
   node?.querySelector<HTMLElement>("a[href]")?.focus();
 }
 
-export function MenuPill({ links, contacts }: MenuPillProps) {
-  const active = useActiveSection();
+export function MenuPill({ links, contacts, active }: MenuPillProps) {
   const [open, setOpen] = useState(false);
   const reduced = useReducedMotion();
   const root = useRef<HTMLDivElement>(null);

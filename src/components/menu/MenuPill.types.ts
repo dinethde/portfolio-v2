@@ -1,3 +1,5 @@
+import type { SectionId } from "@/hooks/use-active-section";
+
 import type { SiteMenuLink } from "./SiteMenu.types";
 
 export interface MenuContactRow {
@@ -13,4 +15,6 @@ export interface MenuPillProps {
   links: SiteMenuLink[];
   /** The contact rows under the divider. */
   contacts: MenuContactRow[];
+  /** The section in view, from SiteMenu. */
+  active: SectionId;
 }

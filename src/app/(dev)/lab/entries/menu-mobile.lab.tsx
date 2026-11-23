@@ -1,12 +1,12 @@
 import { MenuPanel } from "@/components/menu/MenuPanel";
-import { MenuPill } from "@/components/menu/MenuPill";
 import type { MenuContactRow } from "@/components/menu/MenuPill.types";
+import { SiteMenu } from "@/components/menu/SiteMenu";
 import { nav } from "@/content/nav";
 import { site } from "@/content/site";
 
 // The tablet and phone menu (Figma 276:3868, open states 277:6320 and 277:7638). The pill is fixed
 // to the viewport, so it sits in a transformed box that becomes its containing block. It is hidden
-// from 1100px up, where the side menu takes over. Below the live pill is the open panel, static.
+// from 1100px up, where SiteMenu shows the side panel instead. Below the live pill is the open panel, static.
 
 export const title = "Menu (tablet and phone)";
 
@@ -19,7 +19,7 @@ export function Lab() {
   return (
     <div className="flex flex-col gap-24">
       <div data-testid="menu-stage" className="relative h-420 transform-[translateZ(0)]">
-        <MenuPill links={nav} contacts={contacts} />
+        <SiteMenu links={nav} contacts={contacts} />
       </div>
       <div className="max-w-358">
         <MenuPanel id="lab-menu-panel" links={nav} contacts={contacts} active="achievements" />
