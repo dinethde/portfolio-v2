@@ -27,7 +27,7 @@ export function ProgressPath({ children, className }: ProgressPathProps) {
         <path
           d={d}
           fill="none"
-          strokeWidth={1}
+          strokeWidth={0.5}
           strokeDasharray="3 3"
           className="stroke-timeline-default-line"
         />
@@ -39,7 +39,7 @@ export function ProgressPath({ children, className }: ProgressPathProps) {
           pathLength={1}
           strokeDasharray={1}
           strokeDashoffset={1 - progress}
-          className="stroke-fill-secondary-main-active"
+          className="stroke-fill-secondary-main-active motion-reduce:[stroke-dashoffset:0]"
         />
         {marker && (
           <circle
