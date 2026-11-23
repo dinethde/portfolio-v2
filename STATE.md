@@ -63,6 +63,8 @@ _Updated 2026-11-13_
 | D-42 | 11-23 | Apps Store gets the `warm-left` glow until O7 is settled | Figma's `warm-right` would sit next to the Design System card's, which the schema refuses; `blue-base` would clash with Vows | `projects.ts`, O7 |
 | D-43 | 11-23 | `BrandMark` renders `src/assets/brand-mark.svg` through `next/image` (`unoptimized`, `alt="Dineth De Silva"`) instead of inlining the SVG as P1-03 asked | An inline SVG would put the gradient's raw colours in a `.tsx` file, which `check_tokens` refuses; as an asset they fall under D-17. The `<img>` with alt is a named image, so no `role` or `aria-label` is needed | `BrandMark.tsx`, P1-03 |
 | D-44 | 11-23 | The staggered entrance is its own client component, `RevealGroup`, not `Reveal.Group`. Children find their group through a context. Both take `as` (`div`, `section`, `ol`, `ul`, `li`), and both add `motion-reduce:` classes so content shows on the first paint under reduced motion | A Server Component can't dot into a client module (`Reveal.Group` throws on the server), and one component per file. The server render doesn't know the motion preference, so the CSS covers it until React does | `Reveal.tsx`, `RevealGroup.tsx`, P1-06 |
+| D-45 | 11-23 | The desktop side menu sits `top-100` with its left edge at `max(32px, 50% − 554px)`: x=166 at 1440 as in Figma 296:7565, and never closer than 32px at narrower desktop widths. 554 is a layout offset from the page centre, not a step on the spacing scale | Figma only draws the 1440 frame; a fixed 166px would overlap the column near the 1100px breakpoint | `SiteMenu.tsx`, P2-02 |
+| D-46 | 11-23 | Menu links have no Visited state, and their focus is Figma's own 2px blue outline (347:9273), not the shared `focus-ring` | Every menu link is an in-page anchor, so `:visited` would leave labels purple for good and fight "blue means you are here". Figma's Visited variant also contradicts its own note. Confirm with Dineth (O9) | `MenuLink.tsx`, P2-02 |
 
 ## Open (needs Dineth)
 
@@ -74,3 +76,4 @@ _Updated 2026-11-13_
 - **O6** Check that Cloudflare Containers is out of beta and the plan fits before launch.
 - **O7** Figma gives the neighbouring Enterprise Design System and Apps Store cards the same glow (Warm right), but the card's note says neighbours differ, and the content schema enforces that. Which glow should one of them get?
 - **O8** The About moodboard (Figma 93:2213) is hidden, so the desktop About has no photos, while P4-04 mentions "the photos". Keep About without photos?
+- **O9** Menu links: should a followed link show Figma's purple Visited state? It's left out for now (D-46).
