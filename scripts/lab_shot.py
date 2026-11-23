@@ -4,13 +4,16 @@
     python3 scripts/lab_shot.py <id>     (or: bun run lab:shot <id>)
 
 Shoots ``#lab-<id>`` from ``/lab?only=<id>`` into ``tests/visual/out/<id>-<width>.png``.
-Starts ``bun run dev`` if nothing answers on port 3000, and stops it again afterwards.
-The browser work is ``tests/e2e/lab-shot.spec.ts``; Playwright reuses the running dev server.
+Starts ``bun run dev`` if nothing answers on this checkout's port, and stops it again afterwards.
+Each checkout gets its own port (``LAB_PORT``, or one derived from its path), so parallel worktrees
+never screenshot each other's server. The browser work is ``tests/e2e/lab-shot.spec.ts``;
+Playwright reuses the running dev server.
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import re
 import subprocess
@@ -22,7 +25,8 @@ from collections.abc import Sequence
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-BASE_URL = "http://localhost:3000"
+PORT_RANGE_START = 3100
+PORT_RANGE_SIZE = 800
 OUT_DIR = "tests/visual/out"
 SPEC = "tests/e2e/lab-shot.spec.ts"
 ENTRY_DIR = ROOT / "src/app/(dev)/lab/entries"
@@ -30,7 +34,20 @@ ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
 START_TIMEOUT_S = 90
 
 
-def server_up(url: str = BASE_URL) -> bool:
+def lab_port(root: Path = ROOT, env: dict[str, str] | None = None) -> int:
+    """``LAB_PORT`` if set, otherwise a port in 3100-3899 that stays the same for this checkout."""
+    value = (env if env is not None else os.environ).get("LAB_PORT")
+    if value:
+        return int(value)
+    digest = hashlib.sha256(str(root).encode()).digest()
+    return PORT_RANGE_START + int.from_bytes(digest[:4], "big") % PORT_RANGE_SIZE
+
+
+def base_url(port: int) -> str:
+    return f"http://localhost:{port}"
+
+
+def server_up(url: str) -> bool:
     """True if something answers HTTP on ``url``."""
     try:
         with urllib.request.urlopen(url, timeout=2):
@@ -50,24 +67,29 @@ def check_id(entry_id: str, entry_dir: Path = ENTRY_DIR) -> str | None:
     return None
 
 
-def playwright_env(entry_id: str, base: dict[str, str]) -> dict[str, str]:
+def playwright_env(entry_id: str, base: dict[str, str], port: int) -> dict[str, str]:
     """The environment for the spec. ``CI`` is dropped so Playwright reuses the dev server."""
     env = {k: v for k, v in base.items() if k != "CI"}
+    env["PLAYWRIGHT_BASE_URL"] = base_url(port)
     env["LAB_ID"] = entry_id
     env["LAB_OUT"] = OUT_DIR
     return env
 
 
-def start_dev_server() -> subprocess.Popen[bytes]:
-    """Start ``bun run dev`` and wait until it answers."""
+def start_dev_server(port: int) -> subprocess.Popen[bytes]:
+    """Start ``bun run dev`` on ``port`` and wait until it answers."""
     proc = subprocess.Popen(
-        ["bun", "run", "dev"], cwd=ROOT, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True
+        ["bun", "run", "dev", "--port", str(port)],
+        cwd=ROOT,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        start_new_session=True,
     )
     deadline = time.monotonic() + START_TIMEOUT_S
     while time.monotonic() < deadline:
         if proc.poll() is not None:
             raise RuntimeError("bun run dev exited before it started")
-        if server_up():
+        if server_up(base_url(port)):
             return proc
         time.sleep(0.5)
     proc.terminate()
@@ -84,15 +106,16 @@ def main(argv: Sequence[str] | None = None) -> int:
         print(f"lab_shot: {problem}", file=sys.stderr)
         return 2
 
+    port = lab_port()
     server = None
     try:
-        if not server_up():
-            print("lab_shot: starting bun run dev")
-            server = start_dev_server()
+        if not server_up(base_url(port)):
+            print(f"lab_shot: starting bun run dev on port {port}")
+            server = start_dev_server(port)
         result = subprocess.run(
             ["bunx", "playwright", "test", SPEC, "--project=chromium"],
             cwd=ROOT,
-            env=playwright_env(entry_id, dict(os.environ)),
+            env=playwright_env(entry_id, dict(os.environ), port),
             check=False,
         )
     except RuntimeError as exc:
