@@ -2,7 +2,7 @@
   "_comment": "Project settings for the orchestrator kit. Reference: the kit README.",
   "plan_dir": "plan",
   "task_id_pattern": "^P\\d+-\\d{2}$",
-  "max_parallel": 3,
+  "max_parallel": 6,
   "max_retries": 3,
   "command_timeout_seconds": 480,
   "full_verify": "bun run verify",
