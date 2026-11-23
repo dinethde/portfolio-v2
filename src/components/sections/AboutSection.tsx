@@ -46,7 +46,13 @@ export function AboutSection({ content = aboutContent }: AboutSectionProps) {
       <RevealGroup className="flex flex-col gap-16">
         {bio.map((runs, index) => (
           <Reveal key={runs[0]?.text ?? index}>
-            <p className="font-rounded text-p2 text-txt-neutral-p3-active">
+            <p
+              className={`font-rounded text-p2 ${
+                index === bio.length - 1
+                  ? "text-txt-neutral-p2-active"
+                  : "text-txt-neutral-p3-active"
+              }`}
+            >
               <RichText runs={runs} />
             </p>
           </Reveal>
