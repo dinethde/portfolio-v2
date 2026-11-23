@@ -31,7 +31,11 @@ export function SectionHeader({
               </p>
               <Image src={heroLine} alt="" unoptimized aria-hidden="true" />
             </div>
-            {icons ? <span aria-hidden="true">{icons}</span> : null}
+            {icons ? (
+              <span aria-hidden="true" className="flex items-end gap-4">
+                {icons}
+              </span>
+            ) : null}
           </div>
         ) : (
           <p className="font-rounded text-p2 text-section_header-default-eyebrow">{eyebrow}</p>
@@ -45,13 +49,18 @@ export function SectionHeader({
       ) : null}
       {divider ? <hr className="border-0 border-t border-section_header-default-divider" /> : null}
       {underline ? (
-        <Image
-          src={underlineArt}
-          alt=""
-          unoptimized
+        // Figma's box is the rotated bounding box (92:2316), so the image is centred inside it.
+        <div
           aria-hidden="true"
-          className="pointer-events-none absolute -left-14 top-110 max-w-none rotate-[4.79deg]"
-        />
+          className="pointer-events-none absolute -left-14 top-110 flex h-61 w-313 items-center justify-center"
+        >
+          <Image
+            src={underlineArt}
+            alt=""
+            unoptimized
+            className="h-[35.49px] w-[310.784px] max-w-none flex-none rotate-[4.79deg]"
+          />
+        </div>
       ) : null}
     </header>
   );

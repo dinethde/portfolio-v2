@@ -29,7 +29,7 @@ describe("SectionHeader", () => {
     );
     const img = container.querySelector("img");
     expect(img?.getAttribute("alt")).toBe("");
-    expect(img?.getAttribute("aria-hidden")).toBe("true");
+    expect(img?.parentElement?.getAttribute("aria-hidden")).toBe("true");
   });
 
   it("shows the hero emoji beside the hello line, hidden from screen readers", () => {
