@@ -21,19 +21,20 @@ const layers: Record<GlowName, [typeof top, typeof blueBase1, typeof blueBase2]>
   "warm-left": [top, warmLeft1, warmLeft2],
 };
 
+// Percentages of the 636x522 artwork frame, so the glow scales with the mat.
 const positions = [
-  "left-[-235px] top-[-212px]",
-  "left-[-253px] top-[-28px]",
-  "left-[-178px] top-[72px]",
+  "left-[-36.95%] top-[-40.61%] h-[121.07%] w-[168.08%]",
+  "left-[-39.78%] top-[-5.36%] h-[113.98%] w-[186.48%]",
+  "left-[-27.99%] top-[13.83%] h-[136.1%] w-[159.12%]",
 ];
 
 export function ProjectGlow({ glow }: ProjectGlowProps) {
   return (
     <div
       aria-hidden="true"
-      className="pointer-events-none absolute inset-x-0 -top-11 flex justify-center"
+      className="pointer-events-none absolute -z-10 -top-[2.2%] -left-[3%] h-[104.4%] w-[106%]"
     >
-      <div className="relative h-522 w-636 shrink-0 transition-transform duration-300 ease-soft group-hover:scale-[1.04] motion-reduce:transition-none">
+      <div className="relative size-full transition-transform duration-300 ease-soft group-hover:scale-[1.04] in-data-[force-state~=hover]:scale-[1.04] motion-reduce:transition-none">
         {layers[glow].map((src, index) => (
           <Image
             key={positions[index]}
