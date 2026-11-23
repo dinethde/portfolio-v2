@@ -5,6 +5,14 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 
 export const title = "Section header";
 
+// Figma 111:4646: 24px and 22px, with 3px and 4px of padding under them.
+const emoji = (
+  <>
+    <span className="pb-3 text-[24px] leading-[24px]">✌🏻</span>
+    <span className="pb-4 text-[22px] leading-[24px]">👀</span>
+  </>
+);
+
 const heading = "Artistic Designer &\nSoftware Engineer";
 
 export function Lab() {
@@ -14,7 +22,7 @@ export function Lab() {
         variant="hero"
         eyebrow="Hi, I'm Dineth De Silva"
         title={heading}
-        icons="✌🏻 👀"
+        icons={emoji}
       />
       <SectionHeader
         variant="section"
