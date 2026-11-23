@@ -6,7 +6,7 @@ const dayMonth = new Intl.DateTimeFormat("en-GB", {
   month: "long",
   timeZone: "UTC",
 });
-const shortMonth = new Intl.DateTimeFormat("en-GB", { month: "short", timeZone: "UTC" });
+const shortMonth = new Intl.DateTimeFormat("en-US", { month: "short", timeZone: "UTC" });
 
 function parseDate(date: string): Date {
   return new Date(`${date}T00:00:00Z`);
