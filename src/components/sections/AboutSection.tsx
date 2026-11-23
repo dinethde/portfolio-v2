@@ -37,6 +37,7 @@ export function AboutSection({ content = aboutContent }: AboutSectionProps) {
       <Reveal>
         <SectionHeader
           variant="section"
+          titleId="about-title"
           eyebrow={header.eyebrow}
           title={header.title}
           description={header.description}
