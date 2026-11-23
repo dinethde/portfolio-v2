@@ -16,7 +16,11 @@ const levelBg = [
   "bg-contribution_chart-level_4-bg",
 ] as const;
 
-const cell = "box-border size-12 rounded-2 border border-contribution_chart-cell-border";
+// Cells fade in column by column on load: @starting-style (the `starting:` variant) plays once, and
+// each column delays its cells by 11ms more than the one before it (DESIGN.md "Motion").
+const cell =
+  "box-border size-12 rounded-2 border border-contribution_chart-cell-border transition-opacity duration-300 ease-soft starting:opacity-0 motion-reduce:transition-none";
+const COLUMN_DELAY_MS = 11;
 
 export function ContributionChart({ contributions, title, className }: ContributionChartProps) {
   const weeks = contributions.weeks.slice(-TABLET_WEEKS);
@@ -47,6 +51,7 @@ export function ContributionChart({ contributions, title, className }: Contribut
                     <span
                       key={day.date}
                       data-tip={formatTooltip(day.count, day.date)}
+                      style={{ transitionDelay: `${index * COLUMN_DELAY_MS}ms` }}
                       className={`${cell} ${levelBg[day.level]}`}
                     />
                   ))}
