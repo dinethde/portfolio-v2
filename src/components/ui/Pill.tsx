@@ -7,7 +7,7 @@ const base =
   "inline-flex items-center gap-6 rounded-8 border-[1.5px] border-solid border-pill-modern-border bg-pill-modern-bg px-12 py-4 font-rounded text-p2 font-medium whitespace-nowrap text-pill-modern-text shadow-pill";
 
 const interactive =
-  "transition-[transform,border-color] duration-150 hover:-translate-y-1 hover:border-outline-neutral-main-hover focus-visible:focus-ring";
+  "transition-[translate,border-color] duration-150 ease-soft motion-reduce:transition-none hover:-translate-y-1 hover:border-outline-neutral-main-hover focus-visible:focus-ring";
 
 export function Pill({ icon, children, className, href }: PillProps) {
   const content = (
