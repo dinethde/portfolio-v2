@@ -99,4 +99,6 @@ Everything else is local state: whether the menu is open, and which chart cell i
 
 `app/(dev)/lab/` shows every component on its own, in every Figma variant and state, using sample data. Each component has its own entry file in `entries/`, so parallel work never touches the same file. In production it returns 404.
 
+Lab entries may read `content/` for sample data, and may be `"use client"` when they need to drive a component's state (as the timeline entry sets its dots' data attributes).
+
 Use it to build a component without the rest of the page. Screenshot it at 390, 834 and 1440, and compare with the Figma board.
