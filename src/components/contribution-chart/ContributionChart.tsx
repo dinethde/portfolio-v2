@@ -63,7 +63,7 @@ export function ContributionChart({ contributions, title, className }: Contribut
           })}
         </div>
       </ChartTooltip>
-      <figcaption className="flex items-center justify-between font-rounded text-p2 text-txt-neutral-p3-active">
+      <figcaption className="flex flex-col gap-8 font-rounded text-p2 text-txt-neutral-p2-active tablet:flex-row tablet:items-center tablet:justify-between">
         {summary}
         <span aria-hidden="true" className="flex items-center gap-8">
           Less
