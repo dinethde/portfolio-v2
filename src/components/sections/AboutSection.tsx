@@ -61,7 +61,7 @@ export function AboutSection({ content = aboutContent }: AboutSectionProps) {
       <Reveal className="flex flex-col gap-32 tablet:flex-row tablet:gap-24">
         <div className="flex flex-col gap-12 tablet:w-314 tablet:shrink-0">
           <h3 className={itemTitle}>{tools.title}</h3>
-          <p className="font-rounded text-p2 text-txt-neutral-p2-active">
+          <p className="font-rounded text-p2 leading-[2.8] text-txt-neutral-p2-active">
             {tools.sentence.map((part, index) => {
               if (part.kind === "text") {
                 // biome-ignore lint/suspicious/noArrayIndexKey: static list
