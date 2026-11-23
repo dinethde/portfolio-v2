@@ -31,7 +31,7 @@ class CheckId(unittest.TestCase):
                 self.assertIn("isn't a lab id", lab_shot.check_id(bad, self.entries) or "")
 
     def test_rejects_a_missing_entry(self) -> None:
-        self.assertIn("no lab entry", lab_shot.check_id("pill", lab_shot.ENTRY_DIR) or "")
+        self.assertIn("no lab entry", lab_shot.check_id("no-such-entry", lab_shot.ENTRY_DIR) or "")
 
 
 class PlaywrightEnv(unittest.TestCase):
