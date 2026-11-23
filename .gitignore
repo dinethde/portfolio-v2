@@ -29,6 +29,7 @@ CLAUDE.local.md
 # editors and OS
 .DS_Store
 .obsidian/workspace*.json
+.playwright-mcp/
 .vscode/*
 !.vscode/extensions.json
 .idea/
