@@ -21,7 +21,7 @@ const levelBg = [
 const fade =
   "transition-opacity duration-300 ease-soft starting:opacity-0 motion-reduce:transition-none";
 const legendCell = `box-border size-12 rounded-[2px] ${fade}`;
-const gridCell = `box-border size-12 rounded-[2px] border-[0.5px] border-contribution_chart-cell-border opacity-80 ${fade}`;
+const gridCell = `box-border size-12 rounded-[2px] border-[0.5px] border-contribution_chart-cell-border opacity-80 hover:border-[1px] hover:border-outline-neutral-strong-active ${fade}`;
 const COLUMN_DELAY_MS = 11;
 
 export function ContributionChart({ contributions, title, className }: ContributionChartProps) {
