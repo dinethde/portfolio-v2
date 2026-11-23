@@ -52,8 +52,8 @@ export function AboutSection({ content = aboutContent }: AboutSectionProps) {
           </Reveal>
         ))}
       </RevealGroup>
-      <Reveal className="flex flex-col gap-32 min-[600px]:flex-row min-[600px]:gap-24">
-        <div className="flex flex-col gap-12 min-[600px]:w-314 min-[600px]:shrink-0">
+      <Reveal className="flex flex-col gap-32 tablet:flex-row tablet:gap-24">
+        <div className="flex flex-col gap-12 tablet:w-314 tablet:shrink-0">
           <h3 className={itemTitle}>{tools.title}</h3>
           <p className="font-rounded text-p2 text-txt-neutral-p2-active">
             {tools.sentence.map((part, index) => {
@@ -75,7 +75,7 @@ export function AboutSection({ content = aboutContent }: AboutSectionProps) {
             })}
           </p>
         </div>
-        <div className="flex flex-col gap-12 min-[600px]:min-w-0 min-[600px]:flex-1">
+        <div className="flex flex-col gap-12 tablet:min-w-0 tablet:flex-1">
           <h3 className={itemTitle}>{interests.title}</h3>
           <ul className="list-disc pl-21 font-rounded text-p2 text-txt-neutral-p2-active">
             {interests.items.map((item) => (
