@@ -8,4 +8,13 @@ export const contact: Contact = Contact.parse({
     accent: "hiii",
     after: ".",
   },
+  footer: {
+    sayHi: "Say hi",
+    resume: "Resume",
+    twitter: "X (Twitter)",
+    github: "GitHub",
+    linkedin: "LinkedIn",
+    email: "Email",
+    mobile: "Mobile",
+  },
 });

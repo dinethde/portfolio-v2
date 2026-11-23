@@ -8,6 +8,8 @@ import type { ContactSectionProps } from "./ContactSection.types";
 
 // ⑤ Contact (DESIGN.md "The page flow"): the sign-off line, then the footer card, in the 750px column.
 
+const { footer } = contact;
+
 const sections = nav
   .filter((item) => item.id !== "contact")
   .map((item) => ({ label: item.label, href: `#${item.id}` }));
@@ -15,13 +17,13 @@ const sections = nav
 const columns = [
   sections,
   [
-    { label: site.twitter.label, href: site.twitter.href },
-    { label: "GitHub", href: site.github.href },
-    { label: "LinkedIn", href: site.linkedin.href },
+    { label: footer.twitter, href: site.twitter.href },
+    { label: footer.github, href: site.github.href },
+    { label: footer.linkedin, href: site.linkedin.href },
   ],
   [
-    { label: "Email", href: `mailto:${site.email}` },
-    { label: "Mobile", href: `tel:${site.phone.replaceAll(" ", "")}` },
+    { label: footer.email, href: `mailto:${site.email}` },
+    { label: footer.mobile, href: `tel:${site.phone.replaceAll(" ", "")}` },
   ],
 ];
 
@@ -35,8 +37,8 @@ export function ContactSection({ className }: ContactSectionProps) {
       <FooterCta line={contact.line} />
       <FooterCard
         name={site.name}
-        primaryAction={{ label: "Say hi", href: `mailto:${site.email}` }}
-        secondaryAction={{ label: "Resume", href: site.resume }}
+        primaryAction={{ label: footer.sayHi, href: `mailto:${site.email}` }}
+        secondaryAction={{ label: footer.resume, href: site.resume }}
         columns={columns}
       />
     </section>
