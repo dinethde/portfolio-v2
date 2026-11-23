@@ -44,8 +44,9 @@ export function Lab() {
         <DotWith attrs={{ "data-active": "true" }} />
         <DotWith attrs={{ "data-active": "true", "data-ping": "true" }} />
       </div>
-      <div className="flex w-480 flex-col gap-16">
+      <div className="flex w-full max-w-480 flex-col gap-16">
         <ProjectRow {...appsStore} />
+        <ProjectRow {...appsStore} href="#story" />
         <div data-force-state="hover">
           <ProjectRow {...appsStore} />
         </div>
