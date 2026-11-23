@@ -205,7 +205,7 @@ Every component has its own board in [03 Components](https://www.figma.com/desig
 | **Project card** | [251:3651](https://www.figma.com/design/op5jPr3yqBUUTyi2CJGQI3/Portfolio-Rewamp?node-id=251-3651) | Three glow styles (blue base, warm right, warm left). Neighbouring cards use different glows. On hover the image rises a little and the glow grows. |
 | **Footer card** | [351:8691](https://www.figma.com/design/op5jPr3yqBUUTyi2CJGQI3/Portfolio-Rewamp?node-id=351-8691) | Desktop: side by side. Phone: stacked, with the mark and © at the bottom. |
 
-**Icons:** use `lucide-react` when it has the icon. Use the monochrome SVGs from Figma when it doesn't (the brand mark, the plane, the X logo and tech logos). Icons are 14px and take the text colour.
+**Icons:** use the monochrome SVGs from Figma wherever Figma draws the icon (the brand mark, the plane, the social logos, the resume icon and the tech logos). Use `lucide-react` only for an icon Figma doesn't draw. Icons are 14px and take the text colour.
 
 ## Motion
 

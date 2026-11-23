@@ -26,7 +26,7 @@ The portfolio is **one page, built ahead of time, and refreshed in the backgroun
 
 `app/page.tsx` is the only real page. It does two things:
 
-1. It gets the chart data, `await getContributions()`, which never throws.
+1. It gets the chart data, `await getContributions(login)`, with the login from `GITHUB_LOGIN`, which never throws.
 2. It renders the sections in order: `IntroSection` → `StorySection` → `ProjectsSection` → `AboutSection` → `ContactSection`.
 
 `app/layout.tsx` wraps every page with the fonts, the metadata, the skip link and `SiteMenu`.
@@ -37,12 +37,12 @@ Each layer only uses the layers below it.
 
 | Layer          | Folder                    | May use                                                 | Must not use                           |
 | -------------- | ------------------------- | ------------------------------------------------------- | -------------------------------------- |
-| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site` | —                                      |
+| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component | —                                      |
 | Section        | `components/sections/`    | components, hooks, `content/`                           | `lib/github`                           |
 | Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`                    | other groups, `content/`, `lib/github` |
-| Building block | `components/ui/`          | `lib/motion`                                            | everything above it                    |
+| Building block | `components/ui/`          | `lib/motion`, `assets/` (decorative art)                | everything above it                    |
 | Hook           | `hooks/`                  | `lib/`                                                  | components                             |
-| Data           | `content/`, `lib/github/` | `zod`; `content/` also imports `assets/` and the `next/image` types | React, components                      |
+| Data           | `content/`, `lib/github/` | `zod`; `content/` also imports `assets/` and the `next/image` types; `lib/github` reads `content/contributions.fallback.json` | React, components                      |
 
 - **Sections are the only place where content meets components.** Components get everything through props, so they can be shown in the lab with sample data.
 - **If a task seems to need a forbidden import, the task is wrong.** Stop and ask; don't work around it.
@@ -56,6 +56,7 @@ Everything is a Server Component unless it has to react to the browser.
 | `SiteMenu` (with `MenuPill`, `MenuPanel`) | Knows which section is in view, opens and closes          |
 | `ProgressPath`                            | Follows the scroll and draws the timeline line            |
 | `Reveal`                                  | Plays the entrance once, when the content comes into view |
+| `RevealGroup`                             | Staggers the entrances of the `Reveal`s inside it         |
 | `ChartTooltip`                            | Follows the pointer over the chart                        |
 
 Keep the `"use client"` line on these leaf files only, never on a section or on the page.
@@ -67,8 +68,8 @@ Keep the `"use client"` line on these leaf files only, never on a section or on 
 **The GitHub chart** goes through these steps, and each one can be tested on its own:
 
 ```
-getContributions()                        lib/github/contributions.ts  (server only)
-  ├─ fetchCalendar(login, token)            GraphQL call, 5 s timeout
+getContributions(login)                   lib/github/contributions.ts  (server only)
+  ├─ fetchCalendar(login, token, now)       GraphQL call, 5 s timeout (`now` makes the date range testable)
   ├─ toContributions(raw, now)              lib/github/map.ts — pure: levels, week trimming, shape
   └─ on any error → fallback JSON           content/contributions.fallback.json, logged as [contrib]
 ```
