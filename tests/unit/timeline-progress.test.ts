@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildPath,
   lengthsAlong,
+  progressAlong,
   stopThresholds,
   timelineProgress,
 } from "@/hooks/use-timeline-progress";
@@ -59,5 +60,32 @@ describe("stopThresholds", () => {
     expect(curve).toBeLessThan(190);
     expect(end - curve).toBeCloseTo(100);
     expect(stopThresholds(points)[1]).toBeCloseTo(curve / end);
+  });
+});
+
+describe("progressAlong", () => {
+  const straight = [0, 100, 200].map((y) => ({ x: 10, y }));
+  const curved = [
+    { x: 100, y: 0 },
+    { x: 10, y: 100 },
+    { x: 10, y: 300 },
+  ];
+
+  it("is 0 above the path and 1 below it", () => {
+    expect(progressAlong(straight, -50)).toBe(0);
+    expect(progressAlong(straight, 500)).toBe(1);
+  });
+
+  it("matches the vertical share on a straight path", () => {
+    expect(progressAlong(straight, 50)).toBeCloseTo(0.25);
+  });
+
+  it("puts the drawn tip on the marker line across the curve", () => {
+    const [, curve = 0, end = 0] = lengthsAlong(curved);
+    // At the first dot the whole curve is drawn, more than its share of the vertical drop.
+    expect(progressAlong(curved, 100)).toBeCloseTo(curve / end, 2);
+    expect(progressAlong(curved, 100)).toBeGreaterThan(100 / 300);
+    // Halfway down the straight run, the tip is 100px past the curve.
+    expect(progressAlong(curved, 200)).toBeCloseTo((curve + 100) / end, 2);
   });
 });

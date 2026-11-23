@@ -67,26 +67,62 @@ export function buildPath(points: Point[]): string {
   return d;
 }
 
-/** The length along the path to each point, matching buildPath's shape. */
-export function lengthsAlong(points: Point[]): number[] {
-  const lengths: number[] = [];
+interface Sample extends Point {
+  /** Length along the path up to this sample. */
+  length: number;
+}
+
+/** The path as short straight pieces, matching buildPath's shape, with the length to each. */
+function samplePath(points: Point[]): { samples: Sample[]; atPoint: number[] } {
+  const samples: Sample[] = [];
+  const atPoint: number[] = [];
   let total = 0;
+  const add = (next: Point) => {
+    const last = samples.at(-1);
+    if (last) total += Math.hypot(next.x - last.x, next.y - last.y);
+    samples.push({ ...next, length: total });
+  };
   points.forEach((point, index) => {
     const previous = points[index - 1];
     if (previous && index === 1 && point.x !== previous.x) {
       const [c1, c2] = curveControls(previous, point);
-      let last = previous;
       for (let step = 1; step <= CURVE_SAMPLES; step++) {
-        const next = curvePoint(previous, c1, c2, point, step / CURVE_SAMPLES);
-        total += Math.hypot(next.x - last.x, next.y - last.y);
-        last = next;
+        add(curvePoint(previous, c1, c2, point, step / CURVE_SAMPLES));
       }
-    } else if (previous) {
-      total += Math.hypot(point.x - previous.x, point.y - previous.y);
+    } else {
+      add(point);
     }
-    lengths.push(total);
+    atPoint.push(total);
   });
-  return lengths;
+  return { samples, atPoint };
+}
+
+/** The length along the path to each point. */
+export function lengthsAlong(points: Point[]): number[] {
+  return samplePath(points).atPoint;
+}
+
+/**
+ * How much of the path is drawn, 0 to 1, when the marker line (0.6 × innerHeight) sits at
+ * `markerY` in the path's own coordinates. Measured along the path, so the drawn tip lands on the
+ * marker line even across the curved first leg.
+ */
+export function progressAlong(points: Point[], markerY: number): number {
+  const { samples } = samplePath(points);
+  const first = samples[0];
+  const last = samples.at(-1);
+  if (!first || !last || last.length <= 0) return 0;
+  if (markerY <= first.y) return 0;
+  if (markerY >= last.y) return 1;
+  for (let i = 1; i < samples.length; i++) {
+    const a = samples[i - 1];
+    const b = samples[i];
+    if (a && b && markerY <= b.y && b.y > a.y) {
+      const t = (markerY - a.y) / (b.y - a.y);
+      return (a.length + t * (b.length - a.length)) / last.length;
+    }
+  }
+  return 1;
 }
 
 /** How far along the path each point sits, from 0 (the start) to 1 (the last stop). */
@@ -136,6 +172,7 @@ export function useTimelineProgress(
       // The dots are the points after the start marker, when there is one.
       thresholds = stopThresholds(points).slice(start ? 1 : 0);
       lit = dots.map(() => false);
+      for (const dot of dots) dot.dataset.active = "false";
       return { d: buildPath(points), width: box.width, height: box.height };
     };
 
@@ -149,7 +186,7 @@ export function useTimelineProgress(
       const progress =
         reduceMotion || !first || !last
           ? 1
-          : timelineProgress(window.innerHeight, box.top + first.y, last.y - first.y);
+          : progressAlong(points, MARKER_VIEWPORT_SHARE * window.innerHeight - box.top);
 
       dots.forEach((dot, index) => {
         const on = reduceMotion || progress >= (thresholds[index] ?? 1);
