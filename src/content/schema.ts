@@ -127,7 +127,8 @@ export type Glow = z.infer<typeof Glow>;
 export const Project = z.strictObject({
   title: Text,
   description: Text,
-  icon: Picture,
+  /** Figma only has a placeholder square here, which the card draws when there's no icon (STATE D-40). */
+  icon: Picture.optional(),
   image: Picture,
   glow: Glow,
   /** The small label at the top right of the card, like "FYP". */

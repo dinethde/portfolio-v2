@@ -42,7 +42,7 @@ Each layer only uses the layers below it.
 | Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`                    | other groups, `content/`, `lib/github` |
 | Building block | `components/ui/`          | `lib/motion`                                            | everything above it                    |
 | Hook           | `hooks/`                  | `lib/`                                                  | components                             |
-| Data           | `content/`, `lib/github/` | `zod`                                                   | React, components                      |
+| Data           | `content/`, `lib/github/` | `zod`; `content/` also imports `assets/` and the `next/image` types | React, components                      |
 
 - **Sections are the only place where content meets components.** Components get everything through props, so they can be shown in the lab with sample data.
 - **If a task seems to need a forbidden import, the task is wrong.** Stop and ask; don't work around it.
