@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { MenuContactRow } from "./MenuPill.types";
 
 export interface SiteMenuLink {
   /** The section id, without the `#`. */
@@ -9,6 +9,6 @@ export interface SiteMenuLink {
 export interface SiteMenuProps {
   /** The links, in page order. */
   links: SiteMenuLink[];
-  /** The tablet and phone menu (P2-03). It sits beside the side panel and shows below `desktop:`. */
-  phoneMenu?: ReactNode;
+  /** The contact rows in the tablet and phone panel. */
+  contacts: MenuContactRow[];
 }

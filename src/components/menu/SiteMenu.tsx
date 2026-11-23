@@ -4,12 +4,13 @@ import { BrandMark } from "@/components/ui/BrandMark";
 import { useActiveSection } from "@/hooks/use-active-section";
 
 import { MenuLink } from "./MenuLink";
+import { MenuPill } from "./MenuPill";
 import type { SiteMenuProps } from "./SiteMenu.types";
 
 // Figma 296:7564. The one place that calls useActiveSection, so the side panel and the phone
 // pill always agree (ARCHITECTURE §6). The panel is fixed in the left margin at desktop: (1100px+).
 
-export function SiteMenu({ links, phoneMenu }: SiteMenuProps) {
+export function SiteMenu({ links, contacts }: SiteMenuProps) {
   const active = useActiveSection();
 
   return (
@@ -27,7 +28,7 @@ export function SiteMenu({ links, phoneMenu }: SiteMenuProps) {
           ))}
         </ul>
       </nav>
-      {phoneMenu}
+      <MenuPill links={links} contacts={contacts} active={active} />
     </>
   );
 }
