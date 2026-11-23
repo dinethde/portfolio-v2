@@ -2,7 +2,7 @@
 
 import { motion, useInView, useReducedMotion } from "motion/react";
 
-import { createContext, useRef } from "react";
+import { createContext, useRef, useSyncExternalStore } from "react";
 
 import { entranceGroup } from "@/lib/motion";
 
@@ -13,10 +13,15 @@ import type { RevealGroupProps } from "./RevealGroup.types";
 
 export const InRevealGroup = createContext(false);
 
+const noSubscribe = () => () => {};
+
 export function RevealGroup({ children, as = "div", className }: RevealGroupProps) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.15 });
-  const reduceMotion = useReducedMotion();
+  // The server can't know the preference, so honour it only after hydration; the first client render
+  // must match the server HTML.
+  const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
+  const reduceMotion = useReducedMotion() && hydrated;
 
   if (reduceMotion) {
     const Element = as;

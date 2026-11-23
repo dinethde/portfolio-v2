@@ -2,7 +2,7 @@
 
 import { motion, useInView, useReducedMotion } from "motion/react";
 
-import { use, useRef } from "react";
+import { use, useRef, useSyncExternalStore } from "react";
 
 import { entrance } from "@/lib/motion";
 
@@ -16,11 +16,16 @@ import { InRevealGroup } from "./RevealGroup";
 
 const reducedFallback = "motion-reduce:opacity-100! motion-reduce:transform-none!";
 
+const noSubscribe = () => () => {};
+
 export function Reveal({ children, as = "div", className }: RevealProps) {
   const ref = useRef<HTMLElement>(null);
   const inGroup = use(InRevealGroup);
   const inView = useInView(ref, { once: true, amount: 0.15 });
-  const reduceMotion = useReducedMotion();
+  // The server can't know the preference, so honour it only after hydration; the first client render
+  // must match the server HTML.
+  const hydrated = useSyncExternalStore(noSubscribe, () => true, () => false);
+  const reduceMotion = useReducedMotion() && hydrated;
 
   if (reduceMotion) {
     const Element = as;

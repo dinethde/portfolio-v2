@@ -1,4 +1,6 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, render, screen } from "@testing-library/react";
+import { hydrateRoot } from "react-dom/client";
+import { renderToString } from "react-dom/server";
 import { useInView, useReducedMotion } from "motion/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -81,5 +83,30 @@ describe("RevealGroup", () => {
     );
     expect(screen.getByRole("listitem").getAttribute("style")).toBeNull();
     expect(screen.getByRole("list").getAttribute("style")).toBeNull();
+  });
+});
+
+describe("hydration under reduced motion", () => {
+  it("matches the server HTML, then drops the motion element", async () => {
+    // The server never knows the preference; the browser does from its first render.
+    vi.mocked(useReducedMotion).mockReturnValue(false);
+    const tree = (
+      <RevealGroup as="ul">
+        <Reveal as="li">One</Reveal>
+      </RevealGroup>
+    );
+    const container = document.createElement("div");
+    container.innerHTML = renderToString(tree);
+    document.body.append(container);
+    vi.mocked(useReducedMotion).mockReturnValue(true);
+    const errors = vi.spyOn(console, "error").mockImplementation(() => {});
+
+    const root = await act(async () => hydrateRoot(container, tree));
+
+    expect(errors).not.toHaveBeenCalled();
+    expect(container.querySelector("li")?.getAttribute("style")).toBeNull();
+    act(() => root.unmount());
+    container.remove();
+    errors.mockRestore();
   });
 });
