@@ -5,6 +5,7 @@
     "includes": [
       "**",
       "!.claude",
+      "!.obsidian",
       "!**/*.md",
       "!scripts",
       "!src/assets",
