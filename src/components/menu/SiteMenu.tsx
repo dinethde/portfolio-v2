@@ -16,7 +16,7 @@ export function SiteMenu({ links, phoneMenu }: SiteMenuProps) {
     <>
       <nav
         aria-label="Page sections"
-        className="fixed top-80 left-32 hidden flex-col gap-20 rounded-12 bg-surface-page-active p-16 desktop:flex"
+        className="fixed top-100 left-[max(--spacing(32),calc(50%-(--spacing(554))))] hidden flex-col gap-20 rounded-12 bg-surface-page-active p-16 desktop:flex"
       >
         <BrandMark />
         <ul className="flex flex-col gap-16">
