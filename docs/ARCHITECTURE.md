@@ -55,7 +55,7 @@ Everything is a Server Component unless it has to react to the browser.
 | ----------------------------------------- | --------------------------------------------------------- |
 | `SiteMenu` (with `MenuPill`, `MenuPanel`) | Knows which section is in view, opens and closes          |
 | `ProgressPath`                            | Follows the scroll and draws the timeline line            |
-| `Reveal`                                  | Plays the entrance once, when the content comes into view |
+| `Reveal`                                  | Plays the entrance once, when the content comes into view (not the intro: it uses the CSS `animate-entrance`, STATE D-77) |
 | `RevealGroup`                             | Staggers the entrances of the `Reveal`s inside it         |
 | `ChartTooltip`                            | Follows the pointer over the chart                        |
 
