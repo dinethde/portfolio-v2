@@ -75,6 +75,12 @@ export type Site = z.infer<typeof Site>;
 export const Nav = z.array(z.strictObject({ id: Text, label: Text })).min(1);
 export type Nav = z.infer<typeof Nav>;
 
+/** The contact rows under the links in the tablet and phone menu panel (Figma 276:3847). */
+export const MenuContacts = z
+  .array(z.strictObject({ label: Text, value: Text, href: Href, external: z.boolean().optional() }))
+  .min(1);
+export type MenuContacts = z.infer<typeof MenuContacts>;
+
 // ── ① Intro ───────────────────────────────────────────────────────────
 
 export const Intro = z.strictObject({
