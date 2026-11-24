@@ -242,7 +242,7 @@ Visitor → Cloudflare edge cache ──hit──→ cached page (most visits st
 
 | Name | Where | Secret |
 |---|---|---|
-| `GITHUB_TOKEN` | Container runtime env (set in the Worker), Docker build secret | Yes |
+| `GITHUB_TOKEN` | Container runtime env (set by `deploy.yml`), Docker build secret | Yes |
 | `GITHUB_LOGIN` = `dinethde` | `wrangler.jsonc` vars | No |
 | `SITE_URL` | `wrangler.jsonc` vars + build arg | No |
 | `NEXT_TELEMETRY_DISABLED` = `1` | Dockerfile | No |
