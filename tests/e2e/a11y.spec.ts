@@ -19,8 +19,10 @@ for (const width of [390, 834, 1440] as const) {
       window.scrollTo(0, 0);
     });
     await page.waitForTimeout(1000);
+    // Dineth keeps Figma's text colours though some are under 4.5:1 (STATE.md D-65).
     const results = await new AxeBuilder({ page })
       .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa", "wcag22aa"])
+      .disableRules(["color-contrast"])
       .analyze();
     expect(results.violations).toEqual([]);
   });
