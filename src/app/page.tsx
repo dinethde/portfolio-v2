@@ -21,7 +21,7 @@ export default async function Home() {
     <>
       {/* The menu lives on the page, not the layout, so the lab and the 404 page don't get it. */}
       <SiteMenu links={nav} contacts={menuContacts} />
-      <div className="flex flex-col items-center gap-96 px-16 pt-96 pb-96 tablet:pt-120 desktop:pt-128">
+      <div className="flex flex-col items-center gap-96 px-16 pt-96 pb-128 tablet:pt-120 desktop:pt-128">
         <div className="flex w-full max-w-600 flex-col gap-96">
           <IntroSection contributions={contributions} />
           <StorySection />

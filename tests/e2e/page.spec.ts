@@ -8,7 +8,7 @@ import { nav } from "@/content/nav";
 
 // How far below the viewport top a section may start after an anchor jump: the scroll-margin
 // (STATE D-59) plus a little rounding.
-const LANDING = { 390: 80, 834: 96, 1440: 0 } as const;
+const LANDING = { 390: 80, 834: 80, 1440: 0 } as const;
 
 for (const width of [390, 834, 1440] as const) {
   test.describe(`at ${width}`, () => {

@@ -55,7 +55,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         <main
           id="content"
           tabIndex={-1}
-          className="focus:outline-none [&_section[id]]:scroll-mt-80 tablet:[&_section[id]]:scroll-mt-96 desktop:[&_section[id]]:scroll-mt-0"
+          className="focus:outline-none [&_section[id]]:scroll-mt-80 desktop:[&_section[id]]:scroll-mt-0"
         >
           {children}
         </main>

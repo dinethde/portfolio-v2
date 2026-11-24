@@ -77,7 +77,7 @@ export function MenuPill({ links, contacts, active }: MenuPillProps) {
         aria-label="Page sections"
         ref={root}
         onKeyDown={onKeyDown}
-        className="fixed inset-x-16 top-14 z-20 mx-auto flex max-w-358 flex-col items-center gap-12 tablet:top-29 desktop:hidden"
+        className="fixed inset-x-16 top-20 z-20 mx-auto flex max-w-358 flex-col items-center gap-12 tablet:top-24 desktop:hidden"
       >
         <button
           ref={trigger}
