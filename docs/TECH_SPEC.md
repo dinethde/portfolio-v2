@@ -316,5 +316,5 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 | O2  | Domain (needed for the edge cache, §8)                                                                | `dinethde.me` |
 | O3  | Analytics: Cloudflare Web Analytics (no cookies, needs a CSP host added) or none                      | None at launch |
 | O4  | `resume.pdf` file                                                                                     | `public/resume.pdf` |
-| O5  | Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback such as Nunito (≈ 25 KB) | Open         |
+| O5  | Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback such as Nunito (≈ 25 KB) | Nunito, self-hosted (STATE D-72) |
 | O6  | Cloudflare Containers: check that it's out of beta and that the plan limits fit, before launch        | Done: out of beta, the plan fits |

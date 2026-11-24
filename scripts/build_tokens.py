@@ -44,14 +44,21 @@ class Font:
 
     @property
     def is_linked(self) -> bool:
-        """True when the stack points at a CSS variable set outside :root (next/font)."""
-        return "var(" in self.stack
+        """True when the stack starts with a next/font variable, so it must go in ``@theme inline``.
+
+        A stack that only falls back to one (rounded) stays a plain theme value: the body reads
+        ``var(--font-rounded)``, and ``inline`` would leave that variable unset (STATE D-09).
+        """
+        return self.stack.startswith("var(")
 
 
 FONTS = {
     "Instrument Serif": Font("serif", 'var(--font-instrument-serif, "Instrument Serif"), ui-serif, Georgia, serif'),
     "SF Pro": Font("sans", '-apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", system-ui, sans-serif'),
-    "SF Compact Rounded": Font("rounded", 'ui-rounded, "SF Compact Rounded", "SF Pro Rounded", system-ui, sans-serif'),
+    "SF Compact Rounded": Font(
+        "rounded",
+        'ui-rounded, "SF Compact Rounded", "SF Pro Rounded", var(--font-nunito, Nunito), system-ui, sans-serif',
+    ),
 }
 # Figma text style (first three path parts) -> --text-<key>
 TEXT_KEYS = {
