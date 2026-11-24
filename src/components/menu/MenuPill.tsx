@@ -70,7 +70,9 @@ export function MenuPill({ links, contacts, active }: MenuPillProps) {
 
   return (
     <>
-      {open && <div aria-hidden="true" className="fixed inset-0 z-10" onClick={close} />}
+      {open && (
+        <div aria-hidden="true" className="fixed inset-0 z-10 desktop:hidden" onClick={close} />
+      )}
       <nav
         aria-label="Page sections"
         ref={root}
