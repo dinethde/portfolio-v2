@@ -158,7 +158,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
   - Description: from the first intro paragraph, at most 155 characters.
   - A canonical link to `/`.
   - Open Graph and Twitter `summary_large_image` tags using `opengraph-image.png`.
-- **JSON-LD** `Person` with `name`, `jobTitle`, `url` and `sameAs` (GitHub, X, and LinkedIn once it's known), from `lib/seo.ts`.
+- **JSON-LD** `Person` with `name`, `jobTitle`, `url` and `sameAs` (GitHub, X and LinkedIn), from `lib/seo.ts`.
 - `robots.ts` allows everything and points to `sitemap.ts`, which lists one URL.
 - Every word is in the server HTML, so nothing important depends on JavaScript.
 
@@ -304,7 +304,7 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
   - GitHub `dinethde`, X `@dinethr_de` (labelled "Twitter").
   - Email `dev.dinethde@gmail.com`, phone `+94 70 324 2772`.
   - Resume at `/resume.pdf`.
-  - LinkedIn is still `TODO`.
+  - LinkedIn is `https://www.linkedin.com/in/dineth-de/`.
 
 ---
 
