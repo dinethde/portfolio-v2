@@ -85,10 +85,10 @@ _Updated 2026-11-23_
 | D-64 | 11-24 | `worker/index.ts` borrows its namespace and context types from `@cloudflare/containers` instead of `@cloudflare/workers-types` | The Workers runtime types aren't installed, and the package list (D-60) stays as it is unless P5-03 needs `wrangler types` | `worker/index.ts` |
 | D-66 | 11-24 | LinkedIn is `https://www.linkedin.com/in/dineth-de/`. With a real URL the intro pill, the footer link and the JSON-LD `sameAs` show it again; the "TODO" checks stay for any later link. Replaces the LinkedIn half of D-58. Closes O1 | Dineth gave the URL | `site.ts`, D-58, O1 |
 | D-67 | 11-24 | The resume is `public/resume.pdf`, copied from Dineth's final `Dineth_De_Silva_SE_Resume.pdf` (4 MB). To change it, replace the file under the same name. Closes O4 | `site.ts` already links `/resume.pdf` | `public/`, O4 |
+| D-68 | 11-24 | The domain is `dinethde.me` (registered at Namecheap). `wrangler.jsonc` routes it to the Worker as a custom domain and sets `SITE_URL`, and the Dockerfile's `SITE_URL` default is the live domain, because wrangler builds the image without build args. `compose.yaml` still passes `http://localhost:3000` for local runs. Replaces the placeholders in D-63. Closes O2 | Dineth chose the domain. A custom domain needs the zone on Cloudflare, so Namecheap's nameservers must point at Cloudflare before the first deploy | `wrangler.jsonc`, `Dockerfile`, TECH_SPEC §12, D-05, D-63, O2 |
 
 ## Open (needs Dineth)
 
-- **O2** Domain (needed for D-05).
 - **O3** Analytics: Cloudflare Web Analytics, or none.
 - **O5** Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback.
 - **O6** Check that Cloudflare Containers is out of beta and the plan fits before launch.

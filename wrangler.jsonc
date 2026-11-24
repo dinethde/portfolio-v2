@@ -3,9 +3,10 @@
   "main": "worker/index.ts",
   "compatibility_date": "2026-11-01",
   "compatibility_flags": ["nodejs_compat"],
+  "routes": [{ "pattern": "dinethde.me", "custom_domain": true }],
   "vars": {
     "GITHUB_LOGIN": "dinethde",
-    "SITE_URL": "https://example.com"
+    "SITE_URL": "https://dinethde.me"
   },
   "containers": [
     {
