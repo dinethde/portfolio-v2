@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import { Instrument_Serif } from "next/font/google";
 
 import type { ReactNode } from "react";
 
 import { SiteMenu } from "@/components/menu/SiteMenu";
 import { menuContacts, nav } from "@/content/nav";
+import { site } from "@/content/site";
 
 import "./globals.css";
 
@@ -17,7 +19,30 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
 });
 
-// The metadata joins in P4-07.
+const title = `${site.name} — ${site.title}`;
+
+// TECH_SPEC §4. SITE_URL is set at build time; until the domain is chosen (STATE O2) links resolve
+// against localhost. The share image is app/opengraph-image.png, which Next picks up by itself.
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  title,
+  description: site.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title,
+    description: site.description,
+    siteName: site.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description: site.description,
+    creator: site.twitter.handle,
+  },
+};
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={instrumentSerif.variable}>
