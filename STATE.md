@@ -83,10 +83,10 @@ _Updated 2026-11-23_
 | D-62 | 11-24 | Under `next dev` the CSP adds `'unsafe-eval'` to `script-src`; production sends TECH_SPEC §9 unchanged | React's development build uses `eval` (Next's own CSP guide adds it in development), so without it `bun run dev` and the lab log CSP errors | `security-headers.ts` |
 | D-63 | 11-24 | The image's build stage takes `SITE_URL` as a build arg defaulting to `http://localhost:3000`, and creates an empty `public/` so the run stage's copy works while the repo has none. `wrangler.jsonc` carries `SITE_URL: "https://example.com"` as a placeholder | The metadata is rendered at build time, so the real domain must reach `docker build`; it isn't known yet (O2). Set both, and pass the build arg in P5-03's deploy, once the domain exists | `Dockerfile`, `wrangler.jsonc`, O2, P5-03 |
 | D-64 | 11-24 | `worker/index.ts` borrows its namespace and context types from `@cloudflare/containers` instead of `@cloudflare/workers-types` | The Workers runtime types aren't installed, and the package list (D-60) stays as it is unless P5-03 needs `wrangler types` | `worker/index.ts` |
+| D-66 | 11-24 | LinkedIn is `https://www.linkedin.com/in/dineth-de/`. With a real URL the intro pill, the footer link and the JSON-LD `sameAs` show it again; the "TODO" checks stay for any later link. Replaces the LinkedIn half of D-58. Closes O1 | Dineth gave the URL | `site.ts`, D-58, O1 |
 
 ## Open (needs Dineth)
 
-- **O1** LinkedIn URL.
 - **O2** Domain (needed for D-05).
 - **O3** Analytics: Cloudflare Web Analytics, or none.
 - **O4** The `resume.pdf` file.
