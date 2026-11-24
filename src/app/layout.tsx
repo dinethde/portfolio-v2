@@ -3,8 +3,6 @@ import { Instrument_Serif } from "next/font/google";
 
 import type { ReactNode } from "react";
 
-import { SiteMenu } from "@/components/menu/SiteMenu";
-import { menuContacts, nav } from "@/content/nav";
 import { site } from "@/content/site";
 
 import "./globals.css";
@@ -53,7 +51,6 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         >
           Skip to content
         </a>
-        <SiteMenu links={nav} contacts={menuContacts} />
         {/* Anchors stop below the floating menu pill on phone and tablet (TECH_SPEC §5, STATE D-59). */}
         <main
           id="content"
