@@ -38,7 +38,7 @@ export function ContactSection({ className }: ContactSectionProps) {
       <FooterCard
         name={site.name}
         primaryAction={{ label: footer.sayHi, href: `mailto:${site.email}` }}
-        secondaryAction={{ label: footer.resume, href: site.resume }}
+        secondaryAction={{ label: footer.resume, href: site.resume.href }}
         columns={columns}
       />
     </section>

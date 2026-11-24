@@ -63,11 +63,11 @@ export const Site = z.strictObject({
   title: Text,
   email: z.email(),
   phone: Text,
-  resume: Href,
-  github: z.strictObject({ handle: Text, href: Href }),
+  resume: z.strictObject({ href: Href, label: Text }),
+  github: z.strictObject({ handle: Text, href: Href, label: Text }),
   twitter: z.strictObject({ handle: Text, href: Href, label: Text }),
   /** "TODO" until the URL is known (STATE.md O1). */
-  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]) }),
+  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]), label: Text }),
 });
 export type Site = z.infer<typeof Site>;
 
@@ -79,8 +79,12 @@ export type Nav = z.infer<typeof Nav>;
 
 export const Intro = z.strictObject({
   greeting: Text,
+  /** The emoji beside the greeting (Figma 111:4646). */
+  greetingEmoji: z.strictObject({ wave: Text, eyes: Text }),
   paragraphs: z.array(RichParagraph).min(1),
   cta: RichParagraph,
+  /** The line above the contribution chart. */
+  chartTitle: Text,
 });
 export type Intro = z.infer<typeof Intro>;
 
