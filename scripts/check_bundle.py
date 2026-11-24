@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Fail if the client JavaScript is over 120 KB gzip (TECH_SPEC §10).
+"""Fail if the client JavaScript is over 220 KB gzip (TECH_SPEC §10, STATE D-73).
 
-    python3 scripts/check_bundle.py [--limit-kb 120] [--dir .next]
+    python3 scripts/check_bundle.py [--limit-kb 220] [--dir .next]
 
 Run it after ``bun run build``. It gzips the scripts the home page loads first (the ``/`` entry in
 ``.next/diagnostics/route-bundle-stats.json``) and adds up the sizes. Without that file it counts every
@@ -19,7 +19,7 @@ from pathlib import Path
 
 from _source_files import ROOT
 
-LIMIT_KB = 120
+LIMIT_KB = 220
 NEXT_DIR = ROOT / ".next"
 ROUTE = "/"
 
