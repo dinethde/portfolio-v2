@@ -5,7 +5,9 @@ export interface SecurityHeader {
 }
 
 // React's dev build uses eval for debugging, so only development adds 'unsafe-eval' (Next's CSP guide).
-export function buildContentSecurityPolicy(development: boolean): string {
+// `upgrade-insecure-requests` only goes out on an https site: on http://localhost WebKit would
+// upgrade the CSS and JS requests to https, and the page would load unstyled (STATE D-79).
+export function buildContentSecurityPolicy(development: boolean, secure = true): string {
   const scriptSrc = development
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
     : "script-src 'self' 'unsafe-inline'";
@@ -20,15 +22,15 @@ export function buildContentSecurityPolicy(development: boolean): string {
     "base-uri 'self'",
     "form-action 'self'",
     "frame-ancestors 'none'",
-    "upgrade-insecure-requests",
+    ...(secure ? ["upgrade-insecure-requests"] : []),
   ].join("; ");
 }
 
-export function buildSecurityHeaders(development: boolean): SecurityHeader[] {
+export function buildSecurityHeaders(development: boolean, secure = true): SecurityHeader[] {
   return [
     {
       key: "Content-Security-Policy",
-      value: buildContentSecurityPolicy(development),
+      value: buildContentSecurityPolicy(development, secure),
     },
     { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
     { key: "X-Content-Type-Options", value: "nosniff" },
@@ -40,6 +42,8 @@ export function buildSecurityHeaders(development: boolean): SecurityHeader[] {
 }
 
 const isDevelopment = process.env.NODE_ENV === "development";
+// The same SITE_URL as lib/seo.ts; unset means localhost.
+const isSecure = (process.env.SITE_URL ?? "").startsWith("https:");
 
-export const contentSecurityPolicy = buildContentSecurityPolicy(isDevelopment);
-export const securityHeaders = buildSecurityHeaders(isDevelopment);
+export const contentSecurityPolicy = buildContentSecurityPolicy(isDevelopment, isSecure);
+export const securityHeaders = buildSecurityHeaders(isDevelopment, isSecure);

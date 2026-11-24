@@ -259,7 +259,7 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
   - Used only in `src/lib/github/` (`import "server-only"`).
   - Never logged and never sent to the browser.
 - **Headers** are set in `next.config.ts` → `headers()` for every route:
-  - `Content-Security-Policy`: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests`
+  - `Content-Security-Policy`: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests` (the last directive only when `SITE_URL` is https, STATE D-79)
   - `Referrer-Policy: strict-origin-when-cross-origin` · `X-Content-Type-Options: nosniff` · `Permissions-Policy: camera=(), microphone=(), geolocation=()` · `poweredByHeader: false`
   - HSTS is turned on in Cloudflare.
 - **Why `'unsafe-inline'` for scripts:**
