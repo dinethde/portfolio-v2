@@ -1,7 +1,11 @@
 import { Container, getContainer } from "@cloudflare/containers";
 
+// The Workers runtime types aren't installed, so borrow them from the container package.
+type Namespace = Parameters<typeof getContainer>[0];
+type Ctx = ConstructorParameters<typeof Container>[0];
+
 interface Env {
-  PORTFOLIO: DurableObjectNamespace<PortfolioContainer>;
+  PORTFOLIO: Namespace;
   GITHUB_LOGIN: string;
   SITE_URL: string;
   GITHUB_TOKEN?: string;
@@ -11,7 +15,7 @@ export class PortfolioContainer extends Container<Env> {
   defaultPort = 3000;
   sleepAfter = "30m";
 
-  constructor(ctx: DurableObjectState, env: Env) {
+  constructor(ctx: Ctx, env: Env) {
     super(ctx, env);
     this.envVars = {
       GITHUB_LOGIN: env.GITHUB_LOGIN,
