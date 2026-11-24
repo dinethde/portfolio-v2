@@ -179,6 +179,22 @@ export type About = z.infer<typeof About>;
 
 /** The centred sign-off line, with its one italic serif word. */
 export const Contact = z.strictObject({
-  line: z.strictObject({ before: z.string(), accent: Text, after: z.string() }),
+  /** `lead` is the first sentence: Figma breaks the line after it from tablet up. */
+  line: z.strictObject({
+    lead: z.string().optional(),
+    before: z.string(),
+    accent: Text,
+    after: z.string(),
+  }),
+  /** The footer card's button and link labels (copy/desktop.md "Footer card"). */
+  footer: z.strictObject({
+    sayHi: Text,
+    resume: Text,
+    twitter: Text,
+    github: Text,
+    linkedin: Text,
+    email: Text,
+    mobile: Text,
+  }),
 });
 export type Contact = z.infer<typeof Contact>;
