@@ -175,3 +175,12 @@ describe("Intro", () => {
     expect(Intro.safeParse({ ...intro, greetingEmoji: undefined }).success).toBe(false);
   });
 });
+
+describe("site description", () => {
+  it("is the intro's first sentence, so the two can't drift apart", async () => {
+    const { site: realSite } = await import("@/content/site");
+    const { intro } = await import("@/content/intro");
+    const first = intro.paragraphs[0]?.map((run) => run.text).join("") ?? "";
+    expect(first.startsWith(realSite.description)).toBe(true);
+  });
+});
