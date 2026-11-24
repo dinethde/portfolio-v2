@@ -28,7 +28,7 @@ import { Story } from "./schema";
 
 // ② Story so far (copy/desktop.md). Decorative pictures have an empty alt.
 export const story: Story = Story.parse({
-  header: { eyebrow: "Timeline", title: "My Journey in Design & Engineering" },
+  header: { eyebrow: "Timeline", title: "My Journey in\nDesign & Engineering" },
   intro: {
     title: "Computer Science Student & Design Engineer",
     subtitle:
