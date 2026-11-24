@@ -61,6 +61,8 @@ export type SectionHeading = z.infer<typeof SectionHeading>;
 export const Site = z.strictObject({
   name: Text,
   title: Text,
+  /** The meta description: the intro's first sentence, at most 155 characters (TECH_SPEC §4). */
+  description: Text.max(155),
   email: z.email(),
   phone: Text,
   resume: z.strictObject({ href: Href, label: Text }),

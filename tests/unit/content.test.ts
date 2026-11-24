@@ -57,6 +57,7 @@ describe("Site", () => {
   const site = {
     name: "Dineth De Silva",
     title: "Artistic Designer & Software Engineer",
+    description: "I build full-stack products from end to end.",
     email: "dev.dinethde@gmail.com",
     phone: "+94 70 324 2772",
     resume: { href: "/resume.pdf", label: "Resume" },
@@ -64,6 +65,10 @@ describe("Site", () => {
     twitter: { handle: "@dinethr_de", href: "https://x.com/dinethr_de", label: "Twitter" },
     linkedin: { href: "TODO", label: "LinkedIn" },
   };
+
+  it("keeps the meta description to 155 characters", () => {
+    expect(Site.safeParse({ ...site, description: "a".repeat(156) }).success).toBe(false);
+  });
 
   it("lets LinkedIn stay TODO until the URL is known", () => {
     expect(Site.safeParse(site).success).toBe(true);
