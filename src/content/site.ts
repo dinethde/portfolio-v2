@@ -6,8 +6,8 @@ export const site: Site = Site.parse({
   title: "Artistic Designer & Software Engineer",
   email: "dev.dinethde@gmail.com",
   phone: "+94 70 324 2772",
-  resume: "/resume.pdf",
-  github: { handle: "dinethde", href: "https://github.com/dinethde" },
+  resume: { href: "/resume.pdf", label: "Resume" },
+  github: { handle: "dinethde", href: "https://github.com/dinethde", label: "GitHub" },
   twitter: { handle: "@dinethr_de", href: "https://x.com/dinethr_de", label: "Twitter" },
-  linkedin: { href: "TODO" },
+  linkedin: { href: "TODO", label: "LinkedIn" },
 });

@@ -3,6 +3,7 @@ import { Intro } from "./schema";
 // ① Intro (copy/desktop.md). Highlighted words are runs with the tone and weight the design shows.
 export const intro: Intro = Intro.parse({
   greeting: "Hi, I'm Dineth De Silva",
+  greetingEmoji: { wave: "✌🏻", eyes: "👀" },
   paragraphs: [
     [
       { text: "I'm a creative " },
@@ -45,4 +46,5 @@ export const intro: Intro = Intro.parse({
   cta: [
     { text: "Got a project in mind? Let's bring it to life!", tone: "strong", weight: "medium" },
   ],
+  chartTitle: "My Contribution to the Tech and Designs",
 });

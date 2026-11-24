@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { About, Image, Projects, Run, Site, TimelineEntry, ToolSentence } from "@/content/schema";
+import {
+  About,
+  Image,
+  Intro,
+  Projects,
+  Run,
+  Site,
+  TimelineEntry,
+  ToolSentence,
+} from "@/content/schema";
 
 // Every content module validates itself with Schema.parse() when it's imported, so a typo fails the
 // build. Importing each one here is the check; a new content file is picked up without editing this.
@@ -50,10 +59,10 @@ describe("Site", () => {
     title: "Artistic Designer & Software Engineer",
     email: "dev.dinethde@gmail.com",
     phone: "+94 70 324 2772",
-    resume: "/resume.pdf",
-    github: { handle: "dinethde", href: "https://github.com/dinethde" },
+    resume: { href: "/resume.pdf", label: "Resume" },
+    github: { handle: "dinethde", href: "https://github.com/dinethde", label: "GitHub" },
     twitter: { handle: "@dinethr_de", href: "https://x.com/dinethr_de", label: "Twitter" },
-    linkedin: { href: "TODO" },
+    linkedin: { href: "TODO", label: "LinkedIn" },
   };
 
   it("lets LinkedIn stay TODO until the URL is known", () => {
@@ -62,7 +71,10 @@ describe("Site", () => {
 
   it("rejects a link that isn't https, mailto, tel or on this site", () => {
     expect(
-      Site.safeParse({ ...site, github: { handle: "x", href: "javascript:alert(1)" } }).success,
+      Site.safeParse({
+        ...site,
+        github: { handle: "x", href: "javascript:alert(1)", label: "GitHub" },
+      }).success,
     ).toBe(false);
   });
 });
@@ -140,5 +152,21 @@ describe("About", () => {
     expect(
       About.safeParse({ ...about, interests: { title: "x", text: [{ text: "Fintech" }] } }).success,
     ).toBe(false);
+  });
+});
+
+describe("Intro", () => {
+  const intro = {
+    greeting: "Hi",
+    greetingEmoji: { wave: "✌🏻", eyes: "👀" },
+    paragraphs: [[{ text: "Hello." }]],
+    cta: [{ text: "Say hi" }],
+    chartTitle: "My chart",
+  };
+
+  it("needs the chart title and the greeting emoji", () => {
+    expect(Intro.safeParse(intro).success).toBe(true);
+    expect(Intro.safeParse({ ...intro, chartTitle: undefined }).success).toBe(false);
+    expect(Intro.safeParse({ ...intro, greetingEmoji: undefined }).success).toBe(false);
   });
 });

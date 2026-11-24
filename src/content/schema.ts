@@ -63,11 +63,11 @@ export const Site = z.strictObject({
   title: Text,
   email: z.email(),
   phone: Text,
-  resume: Href,
-  github: z.strictObject({ handle: Text, href: Href }),
+  resume: z.strictObject({ href: Href, label: Text }),
+  github: z.strictObject({ handle: Text, href: Href, label: Text }),
   twitter: z.strictObject({ handle: Text, href: Href, label: Text }),
   /** "TODO" until the URL is known (STATE.md O1). */
-  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]) }),
+  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]), label: Text }),
 });
 export type Site = z.infer<typeof Site>;
 
@@ -79,8 +79,12 @@ export type Nav = z.infer<typeof Nav>;
 
 export const Intro = z.strictObject({
   greeting: Text,
+  /** The emoji beside the greeting (Figma 111:4646). */
+  greetingEmoji: z.strictObject({ wave: Text, eyes: Text }),
   paragraphs: z.array(RichParagraph).min(1),
   cta: RichParagraph,
+  /** The line above the contribution chart. */
+  chartTitle: Text,
 });
 export type Intro = z.infer<typeof Intro>;
 
@@ -179,6 +183,22 @@ export type About = z.infer<typeof About>;
 
 /** The centred sign-off line, with its one italic serif word. */
 export const Contact = z.strictObject({
-  line: z.strictObject({ before: z.string(), accent: Text, after: z.string() }),
+  /** `lead` is the first sentence: Figma breaks the line after it from tablet up. */
+  line: z.strictObject({
+    lead: z.string().optional(),
+    before: z.string(),
+    accent: Text,
+    after: z.string(),
+  }),
+  /** The footer card's button and link labels (copy/desktop.md "Footer card"). */
+  footer: z.strictObject({
+    sayHi: Text,
+    resume: Text,
+    twitter: Text,
+    github: Text,
+    linkedin: Text,
+    email: Text,
+    mobile: Text,
+  }),
 });
 export type Contact = z.infer<typeof Contact>;
