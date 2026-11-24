@@ -262,7 +262,7 @@
 
   /* ── Font families (Figma text styles) ── */
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro", system-ui, sans-serif;
-  --font-rounded: ui-rounded, "SF Compact Rounded", "SF Pro Rounded", system-ui, sans-serif;
+  --font-rounded: ui-rounded, "SF Compact Rounded", "SF Pro Rounded", var(--font-nunito, Nunito), system-ui, sans-serif;
 
   /* ── Not stored as Figma variables (DESIGN.md: Layout, Elevation, Motion) ── */
   --breakpoint-*: initial;

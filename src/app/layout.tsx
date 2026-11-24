@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Instrument_Serif } from "next/font/google";
+import { Instrument_Serif, Nunito } from "next/font/google";
 
 import type { ReactNode } from "react";
 
@@ -16,6 +16,15 @@ const instrumentSerif = Instrument_Serif({
   subsets: ["latin"],
   display: "swap",
   variable: "--font-instrument-serif",
+});
+
+// The rounded fallback off Apple devices (STATE D-72). Not preloaded: a browser that has ui-rounded
+// never reaches it in --font-rounded, so it never downloads there.
+const nunito = Nunito({
+  subsets: ["latin"],
+  display: "swap",
+  preload: false,
+  variable: "--font-nunito",
 });
 
 const title = `${site.name} — ${site.title}`;
@@ -44,7 +53,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="en" className={instrumentSerif.variable}>
+    <html lang="en" className={`${instrumentSerif.variable} ${nunito.variable}`}>
       <body>
         <a
           href="#content"

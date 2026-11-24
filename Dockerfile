@@ -11,8 +11,9 @@ RUN bun install --frozen-lockfile
 COPY . .
 RUN mkdir -p public
 
-# SITE_URL is public. GITHUB_TOKEN is a build secret, so it never lands in a layer.
-ARG SITE_URL=http://localhost:3000
+# SITE_URL is public; wrangler builds this file without build args, so the default is the live domain.
+# GITHUB_TOKEN is a build secret, so it never lands in a layer.
+ARG SITE_URL=https://dinethde.me
 ENV SITE_URL=${SITE_URL}
 RUN --mount=type=secret,id=GITHUB_TOKEN \
     GITHUB_TOKEN="$(cat /run/secrets/GITHUB_TOKEN 2>/dev/null || true)" bun run build
