@@ -91,3 +91,4 @@ _Updated 2026-11-23_
 - **O7** Figma gives the neighbouring Enterprise Design System and Apps Store cards the same glow (Warm right), but the card's note says neighbours differ, and the content schema enforces that. Which glow should one of them get?
 - **O8** The About moodboard (Figma 93:2213) is hidden, so the desktop About has no photos, while P4-04 mentions "the photos". Keep About without photos?
 - **O9** Menu links: should a followed link show Figma's purple Visited state? It's left out for now (D-46).
+- **O10** Colour contrast: axe (P5-01) finds Figma text colours under WCAG AA 4.5:1 on the page background: brand text `#ec5504` (3.39, "WSO2's"), error text `#e51a1a` (4.43, "IIT"), the large italic "hiii" `#ff7300` (2.58), the email button text on `#fff1e5` (3.23) and the resume button text on `#edf8ff` (3.68). Darken these in Figma and re-export the tokens, or accept them? P5-01 is blocked until then.
