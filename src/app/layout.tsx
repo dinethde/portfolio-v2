@@ -2,6 +2,9 @@ import { Instrument_Serif } from "next/font/google";
 
 import type { ReactNode } from "react";
 
+import { SiteMenu } from "@/components/menu/SiteMenu";
+import { menuContacts, nav } from "@/content/nav";
+
 import "./globals.css";
 
 // Self-hosted and preloaded by next/font. The SF fonts are system stacks and never download
@@ -14,7 +17,7 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
 });
 
-// The menu joins in P4-06, and the metadata in P4-07.
+// The metadata joins in P4-07.
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={instrumentSerif.variable}>
@@ -25,7 +28,13 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         >
           Skip to content
         </a>
-        <main id="content" tabIndex={-1} className="focus:outline-none">
+        <SiteMenu links={nav} contacts={menuContacts} />
+        {/* Anchors stop below the floating menu pill on phone and tablet (TECH_SPEC §5, STATE D-59). */}
+        <main
+          id="content"
+          tabIndex={-1}
+          className="focus:outline-none [&_section[id]]:scroll-mt-80 tablet:[&_section[id]]:scroll-mt-96 desktop:[&_section[id]]:scroll-mt-0"
+        >
           {children}
         </main>
       </body>
