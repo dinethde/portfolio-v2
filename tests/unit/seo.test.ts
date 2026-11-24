@@ -28,8 +28,11 @@ describe("personJsonLd", () => {
     expect(json.url).toBe(siteUrl().href);
   });
 
-  it("lists GitHub and X, and skips LinkedIn while it is TODO", () => {
-    expect(site.linkedin.href).toBe("TODO");
-    expect(personJsonLd().sameAs).toEqual([site.github.href, site.twitter.href]);
+  it("lists GitHub, X and LinkedIn", () => {
+    expect(personJsonLd().sameAs).toEqual([
+      site.github.href,
+      site.twitter.href,
+      site.linkedin.href,
+    ]);
   });
 });
