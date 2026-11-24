@@ -276,7 +276,7 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 
 | Budget (mobile)   | Target                                                               |
 | ----------------- | -------------------------------------------------------------------- |
-| Lighthouse        | Performance ≥ 95 · Accessibility 100 · Best Practices ≥ 95 · SEO 100 |
+| Lighthouse        | Performance ≥ 95 · Accessibility 100 · Best Practices ≥ 95 · SEO 100 (in CI, performance and LCP only warn: STATE D-81) |
 | LCP / CLS / INP   | < 3s (Lighthouse mobile, STATE D-80) / < 0.02 / < 100ms               |
 | Client JavaScript | ≤ 220 KB gzip (STATE D-73)                                           |
 | Project image     | ≤ 180 KB at 1200px wide                                              |
