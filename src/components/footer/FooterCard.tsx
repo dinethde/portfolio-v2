@@ -37,13 +37,13 @@ export function FooterCard({ name, primaryAction, secondaryAction, columns }: Fo
 
   return (
     <footer className="flex w-full max-w-750 flex-col gap-32 rounded-32 bg-footer_card-default-bg p-24 shadow-card tablet:flex-row tablet:gap-100 tablet:p-32">
-      <div className="order-last flex items-center justify-between tablet:order-first tablet:w-134 tablet:flex-col tablet:items-start">
+      <div className="order-last flex items-center justify-between tablet:order-first tablet:shrink-0 tablet:flex-col tablet:items-start">
         <BrandMark />
-        <p className="font-rounded text-p2 text-txt-neutral-p2-active">
+        <p className="whitespace-nowrap font-rounded text-p2 text-txt-neutral-p2-active">
           © {year} {name}
         </p>
       </div>
-      <div className="flex flex-1 flex-col gap-44 pb-32">
+      <div className="flex flex-1 flex-col gap-44 pb-32 tablet:flex-none tablet:shrink-0">
         <div className="flex flex-col gap-4 tablet:flex-row tablet:items-center tablet:gap-40">
           <p className="font-serif text-title-one text-txt-neutral-p2-active">{name}</p>
           <div className="flex justify-between tablet:justify-start tablet:gap-12">
