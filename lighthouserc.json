@@ -4,8 +4,7 @@
       "startServerCommand": "node .next/standalone/server.js",
       "startServerReadyPattern": "Ready",
       "url": ["http://localhost:3000/"],
-      "numberOfRuns": 3,
-      "settings": { "preset": "mobile" }
+      "numberOfRuns": 3
     },
     "assert": {
       "assertions": {
