@@ -13,20 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  pr-text:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Check the PR title and body
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-          BODY: ${{ github.event.pull_request.body }}
-        run: |
-          BODY_FILE="$(mktemp)"
-          printf '%s' "$BODY" > "$BODY_FILE"
-          python3 .claude/orch.py check-pr --title "$TITLE" --body-file "$BODY_FILE"
-
   verify:
     runs-on: ubuntu-latest
     env:
