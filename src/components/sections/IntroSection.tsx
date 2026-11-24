@@ -1,8 +1,6 @@
 import { ContributionChart } from "@/components/contribution-chart/ContributionChart";
 import { SocialIcon } from "@/components/ui/icons";
 import { Pill } from "@/components/ui/Pill";
-import { Reveal } from "@/components/ui/Reveal";
-import { RevealGroup } from "@/components/ui/RevealGroup";
 import { RichText } from "@/components/ui/RichText";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { intro as introContent } from "@/content/intro";
@@ -12,6 +10,12 @@ import type { IntroSectionProps } from "./IntroSection.types";
 
 // Figma 93:2106 (desktop) and 277:4760 (phone): the hero header, three paragraphs, the call to
 // action with the social pills, and the chart. LinkedIn stays out until it has a URL (STATE O1).
+// The entrance is plain CSS so the text shows without JavaScript (STATE D-77).
+
+const entranceClass = "animate-entrance motion-reduce:animate-none";
+
+// 60ms between neighbours in page order, matching `stagger` in src/lib/motion.ts.
+const delay = (position: number) => ({ animationDelay: `${position * 60}ms` });
 
 export function IntroSection({
   contributions,
@@ -29,7 +33,7 @@ export function IntroSection({
 
   return (
     <section id="achievements" aria-labelledby="intro-title" className="flex flex-col gap-40">
-      <Reveal>
+      <div className={entranceClass} style={delay(0)}>
         <SectionHeader
           variant="hero"
           titleId="intro-title"
@@ -42,18 +46,23 @@ export function IntroSection({
             </>
           }
         />
-      </Reveal>
+      </div>
       <div className="flex flex-col gap-32">
-        <RevealGroup className="flex flex-col gap-16">
+        <div className="flex flex-col gap-16">
           {paragraphs.map((runs, index) => (
-            <Reveal key={runs[0]?.text ?? index}>
-              <p className="font-rounded text-p2 text-txt-neutral-p3-active">
-                <RichText runs={runs} />
-              </p>
-            </Reveal>
+            <p
+              key={runs[0]?.text ?? index}
+              className={`font-rounded text-p2 text-txt-neutral-p3-active ${entranceClass}`}
+              style={delay(index + 1)}
+            >
+              <RichText runs={runs} />
+            </p>
           ))}
-        </RevealGroup>
-        <Reveal className="flex flex-col gap-16">
+        </div>
+        <div
+          className={`flex flex-col gap-16 ${entranceClass}`}
+          style={delay(paragraphs.length + 1)}
+        >
           <p className="font-rounded text-p2 text-txt-neutral-p3-active">
             <RichText runs={cta} />
           </p>
@@ -68,10 +77,10 @@ export function IntroSection({
               ),
             )}
           </ul>
-        </Reveal>
-        <Reveal>
+        </div>
+        <div className={entranceClass} style={delay(paragraphs.length + 2)}>
           <ContributionChart title={chartTitle} contributions={contributions} />
-        </Reveal>
+        </div>
       </div>
     </section>
   );

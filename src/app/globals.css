@@ -52,6 +52,23 @@
   @apply ring-2 ring-fill-secondary-main-active ring-offset-2 ring-offset-surface-neutral-light-active;
 }
 
+/* The intro's entrance in plain CSS, so the text shows without JavaScript (STATE D-77). The
+   12px and 500ms mirror `entrance` in src/lib/motion.ts. */
+@theme {
+  --animate-entrance: entrance 500ms var(--ease-soft) both;
+
+  @keyframes entrance {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
 @layer base {
   /* The page's default text is p2 in the rounded family (DESIGN.md "Typography"). */
   html {
