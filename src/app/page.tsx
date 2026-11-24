@@ -7,6 +7,7 @@ import { StorySection } from "@/components/sections/StorySection";
 import { menuContacts, nav } from "@/content/nav";
 import { site } from "@/content/site";
 import { getContributions } from "@/lib/github/contributions";
+import { personJsonLd } from "@/lib/seo";
 
 // The one page (ARCHITECTURE §2). Static, refreshed at most every 6 hours (STATE D-04); the chart
 // data never throws, it falls back to the saved JSON. One 600px column with 96px between sections
@@ -19,6 +20,14 @@ export default async function Home() {
 
   return (
     <>
+      {/* JSON-LD Person (TECH_SPEC §4). Plain data, never run as a script, so the CSP allows it. */}
+      <script
+        type="application/ld+json"
+        // biome-ignore lint/security/noDangerouslySetInnerHtml: our own content, serialised by JSON.stringify
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(personJsonLd()).replace(/</g, "\\u003c"),
+        }}
+      />
       {/* The menu lives on the page, not the layout, so the lab and the 404 page don't get it. */}
       <SiteMenu links={nav} contacts={menuContacts} />
       <div className="flex flex-col items-center gap-96 px-16 pt-96 pb-128 tablet:pt-120 desktop:pt-128">
