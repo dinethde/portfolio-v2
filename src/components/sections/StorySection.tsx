@@ -1,13 +1,11 @@
-import Image from "next/image";
-
 import { ProgressPath } from "@/components/timeline/ProgressPath";
 import { TimelineEntry } from "@/components/timeline/TimelineEntry";
-import { PlaneIcon } from "@/components/ui/icons/PlaneIcon";
+import { PlaneIcon } from "@/components/ui/icons";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
-import type { Story } from "@/content/schema";
 import { story as storyContent } from "@/content/timeline";
 
+import { StoryPhotoFan } from "./StoryPhotoFan";
 import type { StorySectionProps } from "./StorySection.types";
 
 // Figma 93:2106 (desktop) and 277:4760 (phone). The entries sit 85px left of the column on tablet
@@ -15,37 +13,6 @@ import type { StorySectionProps } from "./StorySection.types";
 // edge and the dates move inline (TimelineEntry). ProgressPath draws the line from the plane
 // through every dot to the end mark (STATE D-53). The "Flight plan" label and "CURRENT" tag have
 // no content slot, so they stay here as fixed text (STATE D-41).
-
-// The fan of snapshots at the end, from the rightmost card to the leftmost: where its top left sits
-// in the 114px by 54px stack, and its tilt. The rightmost card is at the back, the leftmost on top.
-const fan = [
-  { left: 99, top: 6, tilt: "rotate-8" },
-  { left: 74, top: 3, tilt: "rotate-4" },
-  { left: 51, top: 2, tilt: "" },
-  { left: 29, top: 3, tilt: "-rotate-4" },
-  { left: 3, top: 5, tilt: "-rotate-8" },
-] as const;
-
-function PhotoFan({ photos }: { photos: Story["photos"] }) {
-  return (
-    <div aria-hidden="true" className="relative h-54 w-114 shrink-0">
-      {fan.map((slot, index) => {
-        const photo = photos[index];
-        if (!photo) return null;
-        return (
-          <Image
-            key={slot.left}
-            src={photo.image}
-            alt=""
-            sizes="32px"
-            style={{ left: slot.left, top: slot.top }}
-            className={`absolute h-48 w-32 rounded-4 border-[1.5px] border-solid border-surface-neutral-light-active object-cover shadow-card ${slot.tilt}`}
-          />
-        );
-      })}
-    </div>
-  );
-}
 
 export function StorySection({ content = storyContent }: StorySectionProps) {
   const { header, intro, entries, signOff, photos } = content;
@@ -104,7 +71,7 @@ export function StorySection({ content = storyContent }: StorySectionProps) {
                 <p className="text-txt-neutral-p3-active">{signOff.subtitle}</p>
               </div>
               <div className="tablet:absolute tablet:-top-9 tablet:left-327">
-                <PhotoFan photos={photos} />
+                <StoryPhotoFan photos={photos} />
               </div>
             </div>
           </Reveal>
