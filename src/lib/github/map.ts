@@ -13,7 +13,7 @@ export const Contributions = z.object({
   total: z.number(),
   weeks: z.array(z.array(ContributionDay)),
   fetchedAt: z.string(),
-  source: z.enum(["live", "fallback"]),
+  source: z.enum(["live", "stored", "fallback"]),
 });
 export type Contributions = z.infer<typeof Contributions>;
 
