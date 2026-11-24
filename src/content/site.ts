@@ -4,6 +4,8 @@ import { Site } from "./schema";
 export const site: Site = Site.parse({
   name: "Dineth De Silva",
   title: "Artistic Designer & Software Engineer",
+  description:
+    "I'm a creative product designer and product engineer who builds full-stack products from end to end.",
   email: "dev.dinethde@gmail.com",
   phone: "+94 70 324 2772",
   resume: { href: "/resume.pdf", label: "Resume" },

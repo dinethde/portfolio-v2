@@ -29,7 +29,7 @@ The portfolio is **one page, built ahead of time, and refreshed in the backgroun
 1. It gets the chart data, `await getContributions(login)`, with the login from `GITHUB_LOGIN`, which never throws.
 2. It renders the sections in order: `IntroSection` → `StorySection` → `ProjectsSection` → `AboutSection` → `ContactSection`.
 
-`app/layout.tsx` wraps every page with the fonts, the metadata, the skip link and `SiteMenu`.
+`app/layout.tsx` wraps every page with the fonts, the metadata and the skip link. `app/page.tsx` renders `SiteMenu` above the sections, so the dev lab and the 404 page have no site menu.
 
 ## 3. The layers
 
@@ -37,7 +37,7 @@ Each layer only uses the layers below it.
 
 | Layer          | Folder                    | May use                                                 | Must not use                           |
 | -------------- | ------------------------- | ------------------------------------------------------- | -------------------------------------- |
-| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component and read `content/` and `assets/` (§8) | —                                      |
+| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site` and `content/nav` (the menu's links and contact rows); the dev-only `(dev)/lab` may import any component and read `content/` and `assets/` (§8) | —                                      |
 | Section        | `components/sections/`    | components, hooks, `content/`                           | `lib/github`                           |
 | Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`, `assets/` (decorative art) | other groups, `content/`, `lib/github` |
 | Building block | `components/ui/`          | `lib/motion`, `assets/` (decorative art)                | everything above it                    |

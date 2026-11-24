@@ -1,6 +1,9 @@
+import type { Metadata } from "next";
 import { Instrument_Serif } from "next/font/google";
 
 import type { ReactNode } from "react";
+
+import { site } from "@/content/site";
 
 import "./globals.css";
 
@@ -14,7 +17,30 @@ const instrumentSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
 });
 
-// The menu joins in P4-06, and the metadata in P4-07.
+const title = `${site.name} — ${site.title}`;
+
+// TECH_SPEC §4. SITE_URL is set at build time; until the domain is chosen (STATE O2) links resolve
+// against localhost. The share image is app/opengraph-image.png, which Next picks up by itself.
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.SITE_URL ?? "http://localhost:3000"),
+  title,
+  description: site.description,
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    url: "/",
+    title,
+    description: site.description,
+    siteName: site.name,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description: site.description,
+    creator: site.twitter.handle,
+  },
+};
+
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
     <html lang="en" className={instrumentSerif.variable}>
@@ -25,7 +51,12 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         >
           Skip to content
         </a>
-        <main id="content" tabIndex={-1} className="focus:outline-none">
+        {/* Anchors stop below the floating menu pill on phone and tablet (TECH_SPEC §5, STATE D-59). */}
+        <main
+          id="content"
+          tabIndex={-1}
+          className="focus:outline-none [&_section[id]]:scroll-mt-80 desktop:[&_section[id]]:scroll-mt-0"
+        >
           {children}
         </main>
       </body>

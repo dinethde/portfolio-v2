@@ -77,6 +77,7 @@ _Updated 2026-11-23_
 | D-56 | 11-24 | The timeline dot's one-off ping ripple uses `ease-out`, not `ease-soft` | `ease-soft` is front-loaded, so the ring was nearly invisible after 250ms; the ripple only reads with a gentler fade | `TimelineDot.tsx` |
 | D-57 | 11-24 | A negative margin is allowed when it only cancels an element's own padding, so a hover box can grow outside the text column without moving the content (the timeline's project rows use `-m-8`). Spacing between siblings is still `gap` | Figma's hover box (350:7574) extends 8px past the content edge | `TimelineEntry.tsx` |
 | D-58 | 11-24 | The footer leaves out the Figma link that Figma draws in the second link column, and LinkedIn while its href is "TODO" (O1) | There's no Figma profile URL in the content yet; a link without a target would be worse than none. Add both to `site.ts` when the URLs exist | `ContactSection.tsx`, `site.ts` |
+| D-59 | 11-24 | The page (not the root layout) renders `SiteMenu` with `nav` and `menuContacts` from content, so the lab and the 404 page don't carry a second menu. The phone and tablet pill sits 20px / 24px from the top (Figma 277:5056, 276:5162), so the layout gives every `section[id]` a `scroll-margin-top` of 80px below desktop (the pill is about 41px tall, plus 16px) and none on desktop. The page ends 128px below the footer card | TECH_SPEC §5 asks for the pill height plus 16px on tablet and phone; the desktop menu is beside the column, not over it | `page.tsx`, `layout.tsx`, `MenuPill.tsx` |
 
 ## Open (needs Dineth)
 
