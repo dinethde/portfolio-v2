@@ -19,20 +19,6 @@ export const MARKER_VIEWPORT_SHARE = 0.6;
 
 const CURVE_SAMPLES = 32;
 
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max);
-}
-
-/** progress = clamp((0.6 × innerHeight − pathTop) / pathHeight, 0, 1). */
-export function timelineProgress(
-  viewportHeight: number,
-  pathTop: number,
-  pathHeight: number,
-): number {
-  if (pathHeight <= 0) return 0;
-  return clamp((MARKER_VIEWPORT_SHARE * viewportHeight - pathTop) / pathHeight, 0, 1);
-}
-
 function curveControls(from: Point, to: Point): [Point, Point] {
   const midY = (from.y + to.y) / 2;
   return [
@@ -167,12 +153,18 @@ export function useTimelineProgress(
     const measure = () => {
       const box = container.getBoundingClientRect();
       const start = container.querySelector("[data-timeline-start]");
-      dots = Array.from(container.querySelectorAll<HTMLElement>("[data-timeline-dot]"));
+      const found = Array.from(container.querySelectorAll<HTMLElement>("[data-timeline-dot]"));
+      // A resize measures again; the dots that were already lit stay lit, so they don't ping twice.
+      // Only a different set of dots starts over.
+      const sameDots = found.length === dots.length && found.every((dot, i) => dot === dots[i]);
+      dots = found;
       points = [...(start ? [centreIn(start, box)] : []), ...dots.map((dot) => centreIn(dot, box))];
       // The dots are the points after the start marker, when there is one.
       thresholds = stopThresholds(points).slice(start ? 1 : 0);
-      lit = dots.map(() => false);
-      for (const dot of dots) dot.dataset.active = "false";
+      if (!sameDots) {
+        lit = dots.map(() => false);
+        for (const dot of dots) dot.dataset.active = "false";
+      }
       return { d: buildPath(points), width: box.width, height: box.height };
     };
 
