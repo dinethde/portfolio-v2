@@ -128,9 +128,25 @@ export interface TimelineState {
 
 const EMPTY: TimelineState = { d: "", width: 0, height: 0, progress: 0, marker: null };
 
-function centreIn(element: Element, box: DOMRect): Point {
-  const rect = element.getBoundingClientRect();
-  return { x: rect.left - box.left + rect.width / 2, y: rect.top - box.top + rect.height / 2 };
+/**
+ * The centre of an element in the container's own coordinates. It adds up layout offsets, so an
+ * entrance's translate on an ancestor (Reveal lifts 12px) doesn't move the point.
+ */
+function centreIn(element: HTMLElement, container: HTMLElement): Point {
+  let x = 0;
+  let y = 0;
+  let node: HTMLElement | null = element;
+  while (node && node !== container) {
+    x += node.offsetLeft;
+    y += node.offsetTop;
+    node = node.offsetParent instanceof HTMLElement ? node.offsetParent : null;
+  }
+  if (node !== container) {
+    const box = container.getBoundingClientRect();
+    const rect = element.getBoundingClientRect();
+    return { x: rect.left - box.left + rect.width / 2, y: rect.top - box.top + rect.height / 2 };
+  }
+  return { x: x + element.offsetWidth / 2, y: y + element.offsetHeight / 2 };
 }
 
 export function useTimelineProgress(
@@ -152,13 +168,16 @@ export function useTimelineProgress(
 
     const measure = () => {
       const box = container.getBoundingClientRect();
-      const start = container.querySelector("[data-timeline-start]");
+      const start = container.querySelector<HTMLElement>("[data-timeline-start]");
       const found = Array.from(container.querySelectorAll<HTMLElement>("[data-timeline-dot]"));
       // A resize measures again; the dots that were already lit stay lit, so they don't ping twice.
       // Only a different set of dots starts over.
       const sameDots = found.length === dots.length && found.every((dot, i) => dot === dots[i]);
       dots = found;
-      points = [...(start ? [centreIn(start, box)] : []), ...dots.map((dot) => centreIn(dot, box))];
+      points = [
+        ...(start ? [centreIn(start, container)] : []),
+        ...dots.map((dot) => centreIn(dot, container)),
+      ];
       // The dots are the points after the start marker, when there is one.
       thresholds = stopThresholds(points).slice(start ? 1 : 0);
       if (!sameDots) {
