@@ -198,7 +198,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 ## 7. CI/CD (GitHub Actions)
 
-**Branches:** `main` is production: only a person merges into it, through a PR from `dev` with a merge commit. `dev` is the integration branch: every task is its own `feat/*` or `fix/*` branch and a small PR into `dev`, squash-merged after review and green CI (STATE.md D-26). Commits are **atomic** and follow Conventional Commits; the message rules are in the `writing-commits` skill, and CI checks the PR title and body with the same rules as the commit guard (`python3 .claude/orch.py check-pr`). Configure Biome's import sorting for the order third-party → react → aliases → relative.
+**Branches:** `main` is production: only a person merges into it, through a PR from `dev` with a merge commit. `dev` is the integration branch: every task is its own `feat/*` or `fix/*` branch and a small PR into `dev`, squash-merged after review and green CI (STATE.md D-26). Commits are **atomic** and follow Conventional Commits; the message rules are in the `writing-commits` skill. The local commit guard checks a PR's title and body before it opens; CI doesn't (STATE.md D-74). Configure Biome's import sorting for the order third-party → react → aliases → relative.
 
 | Workflow | When | Steps |
 |---|---|---|
