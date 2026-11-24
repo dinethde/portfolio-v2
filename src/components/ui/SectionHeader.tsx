@@ -26,7 +26,7 @@ export function SectionHeader({
   return (
     <header className={classes}>
       {/* The hero is a fixed 131px tall (Figma 93:2111); the greeting row takes what the title leaves. */}
-      <div className={`flex flex-col gap-24 ${isHero ? "h-131" : ""}`}>
+      <div className={`flex flex-col gap-24 ${isHero ? "min-h-131" : ""}`}>
         {isHero ? (
           <div className="flex min-h-0 flex-1 items-center gap-20">
             <div className="flex flex-col gap-2">
