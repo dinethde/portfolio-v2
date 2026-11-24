@@ -71,10 +71,13 @@ Keep the `"use client"` line on these leaf files only, never on a section or on 
 getContributions(login)                   lib/github/contributions.ts  (server only)
   ├─ fetchCalendar(login, token, now)       GraphQL call, 5 s timeout (`now` makes the date range testable)
   ├─ toContributions(raw, now)              lib/github/map.ts — pure: levels, week trimming, shape
-  └─ on any error → fallback JSON           content/contributions.fallback.json, logged as [contrib]
+  ├─ on success → save it                   PUT http://contributions.internal (the Worker keeps it in
+  │                                          the Durable Object's storage, STATE D-75)
+  ├─ on any error → the saved copy          GET http://contributions.internal, source "stored"
+  └─ nothing saved → fallback JSON          content/contributions.fallback.json, logged as [contrib]
 ```
 
-The chart component only receives the final shape. It never knows whether the data is live or from the fallback.
+The chart component only receives the final shape. It never knows whether the data is live, saved or from the fallback.
 
 ## 6. Browser state
 
@@ -89,7 +92,7 @@ Everything else is local state: whether the menu is open, and which chart cell i
 
 | Situation                       | What happens                                                                         |
 | ------------------------------- | ------------------------------------------------------------------------------------ |
-| GitHub is down or slow          | The fallback data is shown. The page still renders, and the next rebuild tries again |
+| GitHub is down or slow          | The last data pulled is shown (the bundled fallback if none was saved yet). The next rebuild tries again |
 | Content doesn't fit a component | Follow that component's "content doesn't fit" card in Figma                          |
 | An image is missing             | The build fails. Images are imported, not linked by string                           |
 | JavaScript fails to load        | All text, links and the chart grid still work. Only motion and the tooltip are lost  |

@@ -62,13 +62,14 @@ portfolio-v2/
 ├─ tests/
 │  ├─ unit/                        Vitest
 │  └─ e2e/                         Playwright + axe
-├─ worker/                         Cloudflare Worker that starts and routes to the container (index.ts)
+├─ worker/                         Cloudflare Worker that starts and routes to the container, and keeps the
+│                                  last pulled chart data (index.ts, contributions-store.ts)
 ├─ scripts/                        Python helpers: build_tokens.py, check_tokens.py, check_code_rules.py, lab_shot.py,
 │                                  fallback refresh, budget checks · figma/export-variables.js · tests/
 ├─ copy/desktop.md                 Every word of the Figma desktop frame, exported once (STATE.md D-23)
 ├─ plan/                           One file per task (the orchestrator kit)
 ├─ .claude/                        The orchestrator kit (managed by `orch sync`) + settings.json, orchestrator.json
-├─ .github/workflows/              ci.yml · deploy.yml · refresh-fallback.yml
+├─ .github/workflows/              ci.yml · deploy.yml
 ├─ Dockerfile · .dockerignore · compose.yaml
 ├─ next.config.ts · postcss.config.mjs · tsconfig.json · biome.json
 ├─ vitest.config.ts · playwright.config.ts · lighthouserc.json · wrangler.jsonc
@@ -136,11 +137,11 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 - `from` is now minus 52 weeks, moved back to that Sunday. `to` is now.
 - **Level mapping:** `NONE` → 0, `FIRST_QUARTILE` → 1, `SECOND_QUARTILE` → 2, `THIRD_QUARTILE` → 3, `FOURTH_QUARTILE` → 4. Colour cells with the `chart-level-N` tokens, never GitHub's own colours.
-- **Shape returned to the page:** `{ total: number; weeks: { date: string; count: number; level: 0|1|2|3|4 }[][]; fetchedAt: string; source: "live" | "fallback" }`. The chart component declares only the `{ total, weeks }` part it uses, since components can't import `lib/github`; the page passes the whole object.
+- **Shape returned to the page:** `{ total: number; weeks: { date: string; count: number; level: 0|1|2|3|4 }[][]; fetchedAt: string; source: "live" | "stored" | "fallback" }`. The chart component declares only the `{ total, weeks }` part it uses, since components can't import `lib/github`; the page passes the whole object.
 
 **Freshness:** `page.tsx` sets `export const revalidate = 21600` (6 hours). The fetch uses `next: { revalidate: 21600 }` and `signal: AbortSignal.timeout(5000)`. The page is built ahead of time and quietly rebuilt in the background at most every 6 hours.
 
-**When GitHub fails:** return `src/content/contributions.fallback.json` with `source: "fallback"`, and log `[contrib]` with the error. **Never throw to the page.** A weekly GitHub Action refreshes the fallback file.
+**Keeping the last pull (STATE D-75):** after a live pull, `PUT` the result to `http://contributions.internal`, which the Worker saves in the Durable Object's storage. **When GitHub fails:** `GET` the saved copy from the same URL and return it with `source: "stored"`; if that fails too, return `src/content/contributions.fallback.json` with `source: "fallback"`. Log `[contrib]` with each error. **Never throw to the page.** Refresh the bundled file by hand with `scripts/refresh_fallback.py`.
 
 **Display rules:**
 - Header: `${total.toLocaleString("en-US")} contributions in the last year` (singular "1 contribution"), as Figma 351:8638 says.
@@ -204,11 +205,10 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 |---|---|---|
 | `ci.yml` | Every PR, and every push to `dev` and `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → Playwright (Chromium + WebKit at 390/834/1440, with axe) → Lighthouse CI → `docker build` (proves the image builds) |
 | `deploy.yml` | Push to `main`, after CI | `bunx wrangler deploy`, which builds the Dockerfile, pushes the image to Cloudflare and rolls out the Worker and container |
-| `refresh-fallback.yml` | Weekly | Fetches fresh contributions into `contributions.fallback.json` and opens a PR if it changed |
 
 `bun run verify` runs lint → typecheck → test → build locally. That's the same as the first half of CI.
 
-**Secrets:** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (deploy), and `GH_CONTRIB_TOKEN` (chart data for build and fallback refresh).
+**Secrets:** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (deploy), and `GH_CONTRIB_TOKEN` (chart data at build time, and the container's runtime `GITHUB_TOKEN`, set by `deploy.yml`).
 
 ---
 
