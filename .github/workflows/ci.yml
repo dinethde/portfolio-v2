@@ -68,7 +68,6 @@ jobs:
         with:
           context: .
           push: false
-          build-args: SITE_URL=${{ vars.SITE_URL || 'http://localhost:3000' }}
           secrets: |
             GITHUB_TOKEN=${{ secrets.GH_CONTRIB_TOKEN }}
           cache-from: type=gha
