@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { About, Image, Intro, Projects, Run, Site, TimelineEntry, ToolSentence } from "@/content/schema";
+import {
+  About,
+  Image,
+  Intro,
+  Projects,
+  Run,
+  Site,
+  TimelineEntry,
+  ToolSentence,
+} from "@/content/schema";
 
 // Every content module validates itself with Schema.parse() when it's imported, so a typo fails the
 // build. Importing each one here is the check; a new content file is picked up without editing this.
