@@ -1,0 +1,47 @@
+name: Deploy
+
+# Runs after CI passes on a push to main. Only a person merges into main.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push'
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      # The domain isn't chosen yet (STATE O2): set the SITE_URL repository variable once it is.
+      SITE_URL: ${{ vars.SITE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Require SITE_URL
+        run: |
+          if [ -z "$SITE_URL" ]; then
+            echo "Set the SITE_URL repository variable (Settings > Variables) before deploying." >&2
+            exit 1
+          fi
+      # wrangler builds the Dockerfile itself and can't pass build args, so the build arg's
+      # default is set to the real domain here (STATE D-63). This edit stays in the CI checkout.
+      - name: Point the image build at SITE_URL
+        run: sed -i "s|^ARG SITE_URL=.*|ARG SITE_URL=${SITE_URL}|" Dockerfile
+      - name: Deploy the Worker and container
+        run: bunx wrangler deploy --var "SITE_URL:${SITE_URL}"
+      - name: Set the container's GitHub token
+        env:
+          GITHUB_TOKEN_VALUE: ${{ secrets.GH_CONTRIB_TOKEN }}
+        run: printf '%s' "$GITHUB_TOKEN_VALUE" | bunx wrangler secret put GITHUB_TOKEN
