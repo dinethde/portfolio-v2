@@ -7,6 +7,8 @@ import { Contributions, calendarRange, RawCalendar, toContributions } from "./ma
 const ENDPOINT = "https://api.github.com/graphql";
 const REVALIDATE_SECONDS = 21600;
 const TIMEOUT_MS = 5000;
+const STORE_URL = "http://contributions.internal/";
+const STORE_TIMEOUT_MS = 1000;
 
 const QUERY = `query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
   user(login: $login) {
@@ -35,15 +37,48 @@ export async function fetchCalendar(login: string, token: string, now: Date): Pr
   return RawCalendar.parse(body.data);
 }
 
-/** Never throws: any failure returns the fallback file and logs `[contrib]`. */
+function message(error: unknown): string {
+  return error instanceof Error ? error.message : "unknown error";
+}
+
+/** Saves the last live pull. A failed save is logged and changes nothing. */
+async function save(live: Contributions): Promise<void> {
+  try {
+    const { source: _source, ...data } = live;
+    const response = await fetch(STORE_URL, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+      signal: AbortSignal.timeout(STORE_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`Store responded ${response.status}`);
+  } catch (error) {
+    console.error("[contrib]", message(error));
+  }
+}
+
+async function load(): Promise<Contributions> {
+  const response = await fetch(STORE_URL, { signal: AbortSignal.timeout(STORE_TIMEOUT_MS) });
+  if (!response.ok) throw new Error(`Store responded ${response.status}`);
+  return Contributions.parse({ ...(await response.json()), source: "stored" });
+}
+
+/** Never throws: live, else the last saved pull, else the bundled file. Failures log `[contrib]`. */
 export async function getContributions(login: string): Promise<Contributions> {
   try {
     const token = process.env.GITHUB_TOKEN;
     if (!token) throw new Error("GITHUB_TOKEN is not set");
     const now = new Date();
-    return toContributions(await fetchCalendar(login, token, now), now);
+    const live = toContributions(await fetchCalendar(login, token, now), now);
+    await save(live);
+    return live;
   } catch (error) {
-    console.error("[contrib]", error instanceof Error ? error.message : "unknown error");
+    console.error("[contrib]", message(error));
+  }
+  try {
+    return await load();
+  } catch (error) {
+    console.error("[contrib]", message(error));
     return { ...Contributions.parse(fallback), source: "fallback" };
   }
 }
