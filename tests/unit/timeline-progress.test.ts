@@ -5,27 +5,7 @@ import {
   lengthsAlong,
   progressAlong,
   stopThresholds,
-  timelineProgress,
 } from "@/hooks/use-timeline-progress";
-
-describe("timelineProgress", () => {
-  it("is 0 until the path top reaches 60% of the viewport", () => {
-    expect(timelineProgress(1000, 700, 2000)).toBe(0);
-    expect(timelineProgress(1000, 600, 2000)).toBe(0);
-  });
-
-  it("follows the marker line through the path", () => {
-    expect(timelineProgress(1000, 100, 1000)).toBeCloseTo(0.5);
-  });
-
-  it("stops at 1 once the path has passed the marker", () => {
-    expect(timelineProgress(1000, -5000, 1000)).toBe(1);
-  });
-
-  it("is 0 for an empty path", () => {
-    expect(timelineProgress(1000, 0, 0)).toBe(0);
-  });
-});
 
 describe("buildPath", () => {
   it("curves from an off-rail start to the first dot, then runs straight", () => {

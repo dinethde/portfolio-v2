@@ -41,7 +41,7 @@ export function ProgressPath({ children, className }: ProgressPathProps) {
           strokeDashoffset={1 - progress}
           className="stroke-fill-secondary-main-active motion-reduce:[stroke-dashoffset:0]"
         />
-        {marker && (
+        {marker && progress < 1 && (
           <circle
             cx={marker.x}
             cy={marker.y}
