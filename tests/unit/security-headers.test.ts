@@ -27,22 +27,14 @@ describe("security headers", () => {
 
   it("adds 'unsafe-eval' to script-src in development only", () => {
     const development = buildContentSecurityPolicy(true);
-    expect(development).toContain(
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval';",
-    );
-    expect(development.replace(" 'unsafe-eval'", "")).toBe(
-      buildContentSecurityPolicy(false),
-    );
+    expect(development).toContain("script-src 'self' 'unsafe-inline' 'unsafe-eval';");
+    expect(development.replace(" 'unsafe-eval'", "")).toBe(buildContentSecurityPolicy(false));
   });
 
   it("sets the fixed values", () => {
-    const byKey = Object.fromEntries(
-      buildSecurityHeaders(false).map((h) => [h.key, h.value]),
-    );
+    const byKey = Object.fromEntries(buildSecurityHeaders(false).map((h) => [h.key, h.value]));
     expect(byKey["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     expect(byKey["X-Content-Type-Options"]).toBe("nosniff");
-    expect(byKey["Permissions-Policy"]).toBe(
-      "camera=(), microphone=(), geolocation=()",
-    );
+    expect(byKey["Permissions-Policy"]).toBe("camera=(), microphone=(), geolocation=()");
   });
 });
