@@ -63,11 +63,11 @@ export const Site = z.strictObject({
   title: Text,
   email: z.email(),
   phone: Text,
-  resume: Href,
-  github: z.strictObject({ handle: Text, href: Href }),
+  resume: z.strictObject({ href: Href, label: Text }),
+  github: z.strictObject({ handle: Text, href: Href, label: Text }),
   twitter: z.strictObject({ handle: Text, href: Href, label: Text }),
   /** "TODO" until the URL is known (STATE.md O1). */
-  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]) }),
+  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]), label: Text }),
 });
 export type Site = z.infer<typeof Site>;
 

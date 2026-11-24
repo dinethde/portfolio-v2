@@ -59,10 +59,10 @@ describe("Site", () => {
     title: "Artistic Designer & Software Engineer",
     email: "dev.dinethde@gmail.com",
     phone: "+94 70 324 2772",
-    resume: "/resume.pdf",
-    github: { handle: "dinethde", href: "https://github.com/dinethde" },
+    resume: { href: "/resume.pdf", label: "Resume" },
+    github: { handle: "dinethde", href: "https://github.com/dinethde", label: "GitHub" },
     twitter: { handle: "@dinethr_de", href: "https://x.com/dinethr_de", label: "Twitter" },
-    linkedin: { href: "TODO" },
+    linkedin: { href: "TODO", label: "LinkedIn" },
   };
 
   it("lets LinkedIn stay TODO until the URL is known", () => {
@@ -71,7 +71,10 @@ describe("Site", () => {
 
   it("rejects a link that isn't https, mailto, tel or on this site", () => {
     expect(
-      Site.safeParse({ ...site, github: { handle: "x", href: "javascript:alert(1)" } }).success,
+      Site.safeParse({
+        ...site,
+        github: { handle: "x", href: "javascript:alert(1)", label: "GitHub" },
+      }).success,
     ).toBe(false);
   });
 });

@@ -22,9 +22,9 @@ export function IntroSection({
 
   const socials = [
     { name: "x", label: site.twitter.label, href: site.twitter.href },
-    { name: "github", label: "GitHub", href: site.github.href },
-    { name: "resume", label: "Resume", href: site.resume },
-    { name: "linkedin", label: "LinkedIn", href: site.linkedin.href },
+    { name: "github", label: site.github.label, href: site.github.href },
+    { name: "resume", label: site.resume.label, href: site.resume.href },
+    { name: "linkedin", label: site.linkedin.label, href: site.linkedin.href },
   ] as const;
 
   return (
