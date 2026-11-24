@@ -136,14 +136,14 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 - `from` is now minus 52 weeks, moved back to that Sunday. `to` is now.
 - **Level mapping:** `NONE` → 0, `FIRST_QUARTILE` → 1, `SECOND_QUARTILE` → 2, `THIRD_QUARTILE` → 3, `FOURTH_QUARTILE` → 4. Colour cells with the `chart-level-N` tokens, never GitHub's own colours.
-- **Shape returned to the page:** `{ total: number; weeks: { date: string; count: number; level: 0|1|2|3|4 }[][]; fetchedAt: string; source: "live" | "fallback" }`.
+- **Shape returned to the page:** `{ total: number; weeks: { date: string; count: number; level: 0|1|2|3|4 }[][]; fetchedAt: string; source: "live" | "fallback" }`. The chart component declares only the `{ total, weeks }` part it uses, since components can't import `lib/github`; the page passes the whole object.
 
 **Freshness:** `page.tsx` sets `export const revalidate = 21600` (6 hours). The fetch uses `next: { revalidate: 21600 }` and `signal: AbortSignal.timeout(5000)`. The page is built ahead of time and quietly rebuilt in the background at most every 6 hours.
 
 **When GitHub fails:** return `src/content/contributions.fallback.json` with `source: "fallback"`, and log `[contrib]` with the error. **Never throw to the page.** A weekly GitHub Action refreshes the fallback file.
 
 **Display rules:**
-- Header: `${total.toLocaleString("en-US")} contributions in ${year}`.
+- Header: `${total.toLocaleString("en-US")} contributions in the last year` (singular "1 contribution"), as Figma 351:8638 says.
 - Tooltip text: "4 contributions on 12 March", "1 contribution on 3 May", "No contributions on 9 June". Format the date with `Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long" })`.
 - Desktop and tablet show the newest weeks that fit the 600px column (about 40). Phone (< 600px) shows the newest 24.
 - The grid is server-rendered. Only the tooltip is a small client component.

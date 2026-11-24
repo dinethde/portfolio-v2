@@ -37,7 +37,7 @@ Each layer only uses the layers below it.
 
 | Layer          | Folder                    | May use                                                 | Must not use                           |
 | -------------- | ------------------------- | ------------------------------------------------------- | -------------------------------------- |
-| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component | —                                      |
+| Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component and read `content/` and `assets/` (§8) | —                                      |
 | Section        | `components/sections/`    | components, hooks, `content/`                           | `lib/github`                           |
 | Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`, `assets/` (decorative art) | other groups, `content/`, `lib/github` |
 | Building block | `components/ui/`          | `lib/motion`, `assets/` (decorative art)                | everything above it                    |
@@ -98,5 +98,7 @@ Everything else is local state: whether the menu is open, and which chart cell i
 ## 8. The lab (development only)
 
 `app/(dev)/lab/` shows every component on its own, in every Figma variant and state, using sample data. Each component has its own entry file in `entries/`, so parallel work never touches the same file. In production it returns 404.
+
+Lab entries may read `content/` for sample data, and may be `"use client"` when they need to drive a component's state (as the timeline entry sets its dots' data attributes).
 
 Use it to build a component without the rest of the page. Screenshot it at 390, 834 and 1440, and compare with the Figma board.
