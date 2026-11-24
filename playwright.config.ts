@@ -10,6 +10,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL, trace: "on-first-retry" },
+  // Visual baselines live beside the specs, one per screenshot name (STATE D-83).
+  snapshotPathTemplate: "{testDir}/__screenshots__/{testFileName}/{arg}{ext}",
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
