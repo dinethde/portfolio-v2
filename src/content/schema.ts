@@ -210,3 +210,12 @@ export const Contact = z.strictObject({
   }),
 });
 export type Contact = z.infer<typeof Contact>;
+
+// ── 404 ───────────────────────────────────────────────────────────────
+
+/** The small "page not found" screen: a section header and a link home. Figma has no 404 frame. */
+export const NotFound = z.strictObject({
+  heading: SectionHeading,
+  homeLabel: Text,
+});
+export type NotFound = z.infer<typeof NotFound>;
