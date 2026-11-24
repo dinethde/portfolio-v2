@@ -90,7 +90,9 @@ _Updated 2026-11-23_
 | D-69 | 11-24 | No analytics at launch. Closes O3 | Dineth left analytics out | TECH_SPEC §12, O3 |
 | D-70 | 11-24 | Cloudflare Containers is out of beta and Dineth's plan covers it. Closes O6 | Dineth checked it | TECH_SPEC §8, O6 |
 | D-71 | 11-24 | O7, O8 and O9 stay as built: Apps Store keeps the `warm-left` glow (D-42), About has no photos, and menu links have no Visited state (D-46). Closes O7, O8, O9 | Dineth chose to leave them as they are | `projects.ts`, `AboutSection.tsx`, `MenuLink.tsx` |
+| D-72 | 11-24 | The rounded fallback is **Nunito**, self-hosted by `next/font` (`--font-nunito`, not preloaded) and placed in `--font-rounded` after the SF names and before `system-ui`. `build_tokens.py` now puts a stack in `@theme inline` only when it *starts* with a `var(`, so `--font-rounded` stays a plain theme value the body can read (D-09). Only Safari knows `ui-rounded`, so Chrome and Firefox on a Mac show Nunito too. Closes O5 | Dineth asked for a similar rounded font instead of `system-ui`; TECH_SPEC §12 named Nunito. Without preload, Safari never downloads it | `layout.tsx`, `build_tokens.py`, `design-tokens.css`, O5 |
 
 ## Open (needs Dineth)
 
-- **O5** Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback.
+Nothing open.
+

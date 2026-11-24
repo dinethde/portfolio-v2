@@ -108,7 +108,7 @@ src/app/globals.css                       (@import "tailwindcss"; @import "../st
 - **Spacing:** `--spacing: 1px` makes the number in a class equal its pixel value. Stick to the Figma scale: 4, 8, 12, 16, 20, 24, 32, 36, 40, 44, 48, 64, 80, 96, 100, 128.
 - **Hover, pressed and focus** use their own tokens: `hover:bg-btn-primary-light-hover-bg`, never `hover:opacity-…`.
 - **Border widths** aren't a Tailwind theme namespace: use `border`, `border-2`, `border-4`, `border-[1.5px]`.
-- **Fonts:** the serif points at the `next/font` variable, which is set on `<html>`, so it lives in an `@theme inline` block. Tailwind's docs say to use `inline` whenever a theme variable references another variable that might not be on `:root`.
+- **Fonts:** the serif *starts* with a `next/font` variable, which is set on `<html>`, so it lives in an `@theme inline` block. Rounded only falls back to one (Nunito) and stays a plain theme value, because the body reads `var(--font-rounded)` (STATE D-09, D-72). Tailwind's docs say to use `inline` whenever a theme variable references another variable that might not be on `:root`.
 - **To change a token:** change it in Figma, re-run the export script, save the JSON, then run `python3 scripts/build_tokens.py`. CI runs `python3 scripts/build_tokens.py --check`, so a hand-edited token file fails the build.
 
 **Naming:** component files are `PascalCase.tsx`, with props in `PascalCase.types.ts` beside them. Everything else is `kebab-case.ts`. Use named exports, one component per file, and the `@/` import alias for `src/`. The code rules (gap not margins, ≤ 250 lines per component, no `useEffect` without a subscription, import order) are in `CLAUDE.md`.
@@ -288,8 +288,9 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
   - Add `sharp` so the standalone server can optimise images.
 - **Fonts:**
   - Instrument Serif comes from `next/font/google`, which self-hosts it and preloads it. Only the 400 and Italic weights.
+  - Nunito, the rounded fallback where `ui-rounded` is missing, also comes from `next/font/google`, not preloaded (STATE D-72).
   - The SF fonts are never downloaded. Use system stacks instead:
-    - Rounded: `ui-rounded, "SF Compact Rounded", "SF Pro Rounded", system-ui, sans-serif`
+    - Rounded: `ui-rounded, "SF Compact Rounded", "SF Pro Rounded", var(--font-nunito, Nunito), system-ui, sans-serif`
     - SF Pro: `-apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif`
 - **Requests:** no requests from the browser after the page loads.
 
@@ -316,5 +317,5 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 | O2  | Domain (needed for the edge cache, §8)                                                                | `dinethde.me` |
 | O3  | Analytics: Cloudflare Web Analytics (no cookies, needs a CSP host added) or none                      | None at launch |
 | O4  | `resume.pdf` file                                                                                     | `public/resume.pdf` |
-| O5  | Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback such as Nunito (≈ 25 KB) | Open         |
+| O5  | Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback such as Nunito (≈ 25 KB) | Nunito, self-hosted (STATE D-72) |
 | O6  | Cloudflare Containers: check that it's out of beta and that the plan limits fit, before launch        | Done: out of beta, the plan fits |
