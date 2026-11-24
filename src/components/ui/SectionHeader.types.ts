@@ -8,6 +8,8 @@ export interface SectionHeaderProps {
   eyebrow: string;
   /** Use a line break to split the title over two lines. */
   title: string;
+  /** The title's id, so the section can point `aria-labelledby` at it. */
+  titleId?: string;
   description?: string;
   /** The grey line under the header (projects only). */
   divider?: boolean;

@@ -11,6 +11,7 @@ export function SectionHeader({
   variant,
   eyebrow,
   title,
+  titleId,
   description,
   divider,
   underline,
@@ -18,6 +19,8 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   const isHero = variant === "hero";
+  // The hero title is the page's one <h1> (TECH_SPEC §5); every other section opens with an <h2>.
+  const Heading = isHero ? "h1" : "h2";
   const classes = ["relative flex flex-col gap-32", className].filter(Boolean).join(" ");
 
   return (
@@ -40,9 +43,12 @@ export function SectionHeader({
         ) : (
           <p className="font-rounded text-p2 text-section_header-default-eyebrow">{eyebrow}</p>
         )}
-        <h2 className="whitespace-pre-line font-serif text-title-one text-txt-neutral-p1-active">
+        <Heading
+          id={titleId}
+          className="whitespace-pre-line font-serif text-title-one text-txt-neutral-p1-active"
+        >
           {title}
-        </h2>
+        </Heading>
       </div>
       {!isHero && description ? (
         <p className="font-rounded text-p2 text-txt-neutral-p2-active">{description}</p>

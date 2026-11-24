@@ -39,7 +39,7 @@ Each layer only uses the layers below it.
 | -------------- | ------------------------- | ------------------------------------------------------- | -------------------------------------- |
 | Route          | `app/`                    | sections, menu, `lib/github`, `lib/seo`, `content/site`; the dev-only `(dev)/lab` may import any component and read `content/` and `assets/` (§8) | —                                      |
 | Section        | `components/sections/`    | components, hooks, `content/`                           | `lib/github`                           |
-| Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`                    | other groups, `content/`, `lib/github` |
+| Component      | `components/<group>/`     | `components/ui`, hooks, `lib/motion`, `assets/` (decorative art) | other groups, `content/`, `lib/github` |
 | Building block | `components/ui/`          | `lib/motion`, `assets/` (decorative art)                | everything above it                    |
 | Hook           | `hooks/`                  | `lib/`                                                  | components                             |
 | Data           | `content/`, `lib/github/` | `zod`; `content/` also imports `assets/` and the `next/image` types; `lib/github` reads `content/contributions.fallback.json` | React, components                      |
