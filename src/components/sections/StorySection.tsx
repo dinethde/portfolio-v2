@@ -32,7 +32,7 @@ export function StorySection({ content = storyContent }: StorySectionProps) {
       {/* The 88px clears the hand-drawn underline, which hangs below the header. */}
       <ProgressPath className="pt-88">
         <div className="relative flex flex-col gap-12 tablet:h-105 tablet:gap-0">
-          <Reveal className="flex flex-col gap-8 tablet:absolute tablet:-top-30 tablet:left-97 tablet:w-376">
+          <Reveal className="flex flex-col gap-8 text-center tablet:absolute tablet:-top-30 tablet:left-97 tablet:w-376 tablet:text-left">
             <p className="font-rounded text-p1 font-medium text-txt-neutral-p1-active">
               {intro.title}
             </p>
@@ -52,8 +52,8 @@ export function StorySection({ content = storyContent }: StorySectionProps) {
           <div aria-hidden="true" className="h-56 tablet:h-53" />
         </div>
         <ol className="flex flex-col tablet:-ml-85 tablet:w-685">
-          {entries.map(({ role, ...entry }) => (
-            <Reveal as="li" key={entry.org}>
+          {entries.map(({ role, ...entry }, index) => (
+            <Reveal as="li" key={`${entry.org}-${entry.period ?? index}`}>
               <TimelineEntry {...entry} jobTitle={role} currentLabel="CURRENT" />
             </Reveal>
           ))}
