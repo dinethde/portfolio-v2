@@ -7,7 +7,7 @@ export const title = "Story section";
 
 export function Lab() {
   return (
-    <div className="max-w-600 pb-600">
+    <div className="max-w-685 pb-600 tablet:pl-85">
       <StorySection />
     </div>
   );
