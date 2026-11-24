@@ -11,5 +11,5 @@ export const site: Site = Site.parse({
   resume: { href: "/resume.pdf", label: "Resume" },
   github: { handle: "dinethde", href: "https://github.com/dinethde", label: "GitHub" },
   twitter: { handle: "@dinethr_de", href: "https://x.com/dinethr_de", label: "Twitter" },
-  linkedin: { href: "TODO", label: "LinkedIn" },
+  linkedin: { href: "https://www.linkedin.com/in/dineth-de/", label: "LinkedIn" },
 });

@@ -84,15 +84,13 @@ _Updated 2026-11-23_
 | D-63 | 11-24 | The image's build stage takes `SITE_URL` as a build arg defaulting to `http://localhost:3000`, and creates an empty `public/` so the run stage's copy works while the repo has none. `wrangler.jsonc` carries `SITE_URL: "https://example.com"` as a placeholder | The metadata is rendered at build time, so the real domain must reach `docker build`; it isn't known yet (O2). Set both, and pass the build arg in P5-03's deploy, once the domain exists | `Dockerfile`, `wrangler.jsonc`, O2, P5-03 |
 | D-64 | 11-24 | `worker/index.ts` borrows its namespace and context types from `@cloudflare/containers` instead of `@cloudflare/workers-types` | The Workers runtime types aren't installed, and the package list (D-60) stays as it is unless P5-03 needs `wrangler types` | `worker/index.ts` |
 | D-65 | 11-24 | Figma's text colours stay as they are, though some are under WCAG AA 4.5:1 on their background (brand `#ec5504`, error `#e51a1a`, the hero "hiii" `#ff7300`, the email and resume button text). The axe spec turns off its `color-contrast` rule; every other rule still has to pass at 390, 834 and 1440. Closes O10 | Dineth tested the colours and chose to keep them for now. A contrast fix starts in Figma, then the tokens are re-exported and the rule comes back on | `tests/e2e/a11y.spec.ts`, P5-01, O10 |
+| D-66 | 11-24 | LinkedIn is `https://www.linkedin.com/in/dineth-de/`. With a real URL the intro pill, the footer link and the JSON-LD `sameAs` show it again; the "TODO" checks stay for any later link. Replaces the LinkedIn half of D-58. Closes O1 | Dineth gave the URL | `site.ts`, D-58, O1 |
+| D-67 | 11-24 | The resume is `public/resume.pdf`, copied from Dineth's final `Dineth_De_Silva_SE_Resume.pdf` (4 MB). To change it, replace the file under the same name. Closes O4 | `site.ts` already links `/resume.pdf` | `public/`, O4 |
+| D-68 | 11-24 | The domain is `dinethde.me` (registered at Namecheap). `wrangler.jsonc` routes it to the Worker as a custom domain and sets `SITE_URL`, and the Dockerfile's `SITE_URL` default is the live domain, because wrangler builds the image without build args. `compose.yaml` still passes `http://localhost:3000` for local runs. Replaces the placeholders in D-63. Closes O2 | Dineth chose the domain. A custom domain needs the zone on Cloudflare, so Namecheap's nameservers must point at Cloudflare before the first deploy | `wrangler.jsonc`, `Dockerfile`, TECH_SPEC §12, D-05, D-63, O2 |
+| D-69 | 11-24 | No analytics at launch. Closes O3 | Dineth left analytics out | TECH_SPEC §12, O3 |
+| D-70 | 11-24 | Cloudflare Containers is out of beta and Dineth's plan covers it. Closes O6 | Dineth checked it | TECH_SPEC §8, O6 |
+| D-71 | 11-24 | O7, O8 and O9 stay as built: Apps Store keeps the `warm-left` glow (D-42), About has no photos, and menu links have no Visited state (D-46). Closes O7, O8, O9 | Dineth chose to leave them as they are | `projects.ts`, `AboutSection.tsx`, `MenuLink.tsx` |
 
 ## Open (needs Dineth)
 
-- **O1** LinkedIn URL.
-- **O2** Domain (needed for D-05).
-- **O3** Analytics: Cloudflare Web Analytics, or none.
-- **O4** The `resume.pdf` file.
 - **O5** Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback.
-- **O6** Check that Cloudflare Containers is out of beta and the plan fits before launch.
-- **O7** Figma gives the neighbouring Enterprise Design System and Apps Store cards the same glow (Warm right), but the card's note says neighbours differ, and the content schema enforces that. Which glow should one of them get?
-- **O8** The About moodboard (Figma 93:2213) is hidden, so the desktop About has no photos, while P4-04 mentions "the photos". Keep About without photos?
-- **O9** Menu links: should a followed link show Figma's purple Visited state? It's left out for now (D-46).
