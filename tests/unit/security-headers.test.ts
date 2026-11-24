@@ -31,6 +31,14 @@ describe("security headers", () => {
     expect(development.replace(" 'unsafe-eval'", "")).toBe(buildContentSecurityPolicy(false));
   });
 
+  it("upgrades insecure requests only on an https site", () => {
+    expect(buildContentSecurityPolicy(false, true)).toContain("upgrade-insecure-requests");
+    expect(buildContentSecurityPolicy(false, false)).not.toContain("upgrade-insecure-requests");
+    expect(buildContentSecurityPolicy(false, false)).toBe(
+      buildContentSecurityPolicy(false, true).replace("; upgrade-insecure-requests", ""),
+    );
+  });
+
   it("sets the fixed values", () => {
     const byKey = Object.fromEntries(buildSecurityHeaders(false).map((h) => [h.key, h.value]));
     expect(byKey["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");

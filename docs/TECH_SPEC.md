@@ -186,7 +186,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 - **Library:** `motion/react`. The timing values live in `src/lib/motion.ts` and follow DESIGN.md "Motion". Plain CSS transitions (hover and colour changes) use Tailwind's `duration-*` with the `ease-soft` token, at the same values.
 - **Server first:** only the parts that move are client components (`"use client"`): `Reveal`, `RevealGroup`, `ProgressPath`, the menu and the chart tooltip.
 - **Only animate** `transform`, `opacity` and SVG `stroke-dashoffset`. Never animate layout properties.
-- **Entrances:** use `useInView({ once: true, amount: 0.15 })` inside `Reveal`.
+- **Entrances:** use `useInView({ once: true, amount: 0.15 })` inside `Reveal`. The intro, which is on screen at load, uses the CSS `animate-entrance` keyframe instead, so it doesn't wait for JavaScript (STATE D-77).
 - **Timeline progress** (`ProgressPath` + `useTimelineProgress`):
   1. Build one SVG path from the DOM positions of the plane and the dots. Rebuild it when a `ResizeObserver` fires.
   2. Draw it twice: a grey dashed base, and a blue copy with `pathLength="1"`, `stroke-dasharray: 1` and `stroke-dashoffset: 1 − progress`.
@@ -259,7 +259,7 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
   - Used only in `src/lib/github/` (`import "server-only"`).
   - Never logged and never sent to the browser.
 - **Headers** are set in `next.config.ts` → `headers()` for every route:
-  - `Content-Security-Policy`: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests`
+  - `Content-Security-Policy`: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests` (the last directive only when `SITE_URL` is https, STATE D-79)
   - `Referrer-Policy: strict-origin-when-cross-origin` · `X-Content-Type-Options: nosniff` · `Permissions-Policy: camera=(), microphone=(), geolocation=()` · `poweredByHeader: false`
   - HSTS is turned on in Cloudflare.
 - **Why `'unsafe-inline'` for scripts:**

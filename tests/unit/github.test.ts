@@ -96,6 +96,55 @@ describe("getContributions", () => {
     return (await import("@/lib/github/contributions")).getContributions("dinethde");
   }
 
+  const STORE = "http://contributions.internal/";
+
+  /** GitHub and the store as separate fakes, so each can succeed or fail. */
+  function stubFetch(opts: { github: "ok" | "fail"; store: "ok" | "empty" | "fail" }) {
+    const { source: _source, ...stored } = { ...fallback, total: 7, source: "live" };
+    const fn = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      if (String(input) !== STORE) {
+        return opts.github === "ok"
+          ? Promise.resolve(Response.json({ data: rawCalendar(53) }))
+          : Promise.resolve(new Response("nope", { status: 502 }));
+      }
+      if (opts.store === "fail") return Promise.reject(new TypeError("fetch failed"));
+      if (init?.method === "PUT") return Promise.resolve(new Response(null, { status: 204 }));
+      return Promise.resolve(
+        opts.store === "ok" ? Response.json(stored) : new Response(null, { status: 404 }),
+      );
+    });
+    vi.stubGlobal("fetch", fn);
+    return fn;
+  }
+
+  it("saves a live pull without its source and returns live", async () => {
+    const fn = stubFetch({ github: "ok", store: "ok" });
+    expect((await load()).source).toBe("live");
+    const put = fn.mock.calls.find(([, init]) => init?.method === "PUT");
+    expect(String(put?.[0])).toBe(STORE);
+    expect(JSON.parse(String(put?.[1]?.body))).not.toHaveProperty("source");
+  });
+
+  it("returns the saved copy as stored when GitHub fails", async () => {
+    stubFetch({ github: "fail", store: "ok" });
+    const result = await load();
+    expect(result.source).toBe("stored");
+    expect(result.total).toBe(7);
+  });
+
+  it("returns the bundled file when GitHub and the store both fail", async () => {
+    stubFetch({ github: "fail", store: "empty" });
+    expect((await load()).source).toBe("fallback");
+    stubFetch({ github: "fail", store: "fail" });
+    expect((await load()).source).toBe("fallback");
+  });
+
+  it("still returns live when the save fails", async () => {
+    stubFetch({ github: "ok", store: "fail" });
+    expect((await load()).source).toBe("live");
+    expect(console.error).toHaveBeenCalledWith("[contrib]", expect.any(String));
+  });
+
   it("returns live data on success", async () => {
     const fetchMock = vi
       .fn()
