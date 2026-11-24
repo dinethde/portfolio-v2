@@ -31,10 +31,13 @@ export function TimelineEntry({
 
   return (
     <article className={["flex items-start gap-16", className].filter(Boolean).join(" ")}>
-      {hasDates && (
+      {hasDates ? (
         <p className="hidden w-64 shrink-0 flex-col items-end gap-4 pt-46 text-p2 font-medium whitespace-nowrap tablet:flex">
           {dates}
         </p>
+      ) : (
+        // Keeps the rail in the same place when a stop has no dates.
+        <div aria-hidden="true" className="hidden w-64 shrink-0 tablet:block" />
       )}
       <div aria-hidden="true" className="flex w-20 shrink-0 flex-col items-center pt-51">
         <TimelineDot />
