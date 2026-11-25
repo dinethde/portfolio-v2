@@ -38,6 +38,10 @@ export function buildSecurityHeaders(development: boolean, secure = true): Secur
       key: "Permissions-Policy",
       value: "camera=(), microphone=(), geolocation=()",
     },
+    // Only on https: a localhost run must not pin the browser to https.
+    ...(secure
+      ? [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" }]
+      : []),
   ];
 }
 

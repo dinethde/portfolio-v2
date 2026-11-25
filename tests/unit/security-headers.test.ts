@@ -7,8 +7,9 @@ import {
 } from "@/lib/security-headers";
 
 describe("security headers", () => {
-  it("lists the four headers from TECH_SPEC §9", () => {
-    expect(securityHeaders.map((h) => h.key)).toEqual([
+  it("lists the headers from TECH_SPEC §9", () => {
+    const keys = securityHeaders.map((h) => h.key);
+    expect(keys.slice(0, 4)).toEqual([
       "Content-Security-Policy",
       "Referrer-Policy",
       "X-Content-Type-Options",
@@ -37,6 +38,13 @@ describe("security headers", () => {
     expect(buildContentSecurityPolicy(false, false)).toBe(
       buildContentSecurityPolicy(false, true).replace("; upgrade-insecure-requests", ""),
     );
+  });
+
+  it("sends HSTS only on an https site", () => {
+    const value = (secure: boolean) =>
+      buildSecurityHeaders(false, secure).find((h) => h.key === "Strict-Transport-Security")?.value;
+    expect(value(true)).toBe("max-age=63072000; includeSubDomains");
+    expect(value(false)).toBeUndefined();
   });
 
   it("sets the fixed values", () => {
