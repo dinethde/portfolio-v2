@@ -1,6 +1,7 @@
 import { Container, getContainer } from "@cloudflare/containers";
 
 import { handleStore, type Storage } from "./contributions-store";
+import { type EdgeCache, type WaitUntil, withEdgeCache } from "./edge-cache";
 
 export { ContainerProxy } from "@cloudflare/containers";
 
@@ -52,8 +53,9 @@ export class PortfolioContainer extends Container<Env> {
 }
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
-    // One instance serves every request.
-    return getContainer(env.PORTFOLIO).fetch(request);
+  async fetch(request: Request, env: Env, ctx: WaitUntil): Promise<Response> {
+    // The edge cache answers first; one container instance serves what it misses.
+    const cache = (globalThis as unknown as { caches: { default: EdgeCache } }).caches.default;
+    return withEdgeCache(request, cache, ctx, (req) => getContainer(env.PORTFOLIO).fetch(req));
   },
 };
