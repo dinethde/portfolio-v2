@@ -10,6 +10,8 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "github" : "list",
   use: { baseURL, trace: "on-first-retry" },
+  // Visual baselines live beside the specs, one per screenshot name (STATE D-83).
+  snapshotPathTemplate: "{testDir}/__screenshots__/{testFileName}/{arg}{ext}",
   projects: [
     { name: "chromium", use: { ...devices["Desktop Chrome"] } },
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
@@ -19,6 +21,8 @@ export default defineConfig({
     command:
       "bun run build && cp -R .next/static .next/standalone/.next/ && (test ! -d public || cp -R public .next/standalone/) && node .next/standalone/server.js",
     url: baseURL,
+    // Docker sets HOSTNAME to the container id, which server.js would bind to instead of every interface
+    env: { HOSTNAME: "0.0.0.0" },
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },

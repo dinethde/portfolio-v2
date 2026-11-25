@@ -32,13 +32,17 @@ jobs:
   e2e:
     needs: verify
     runs-on: ubuntu-latest
+    # The image the visual baselines are recorded in (STATE D-85); keep it on the installed Playwright version
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --ipc=host
     env:
       GITHUB_TOKEN: ${{ secrets.GH_CONTRIB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y --no-install-recommends unzip
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-      - run: bunx playwright install --with-deps chromium webkit
       - run: bun run e2e
 
   lighthouse:

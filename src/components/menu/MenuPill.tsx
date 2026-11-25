@@ -87,9 +87,9 @@ export function MenuPill({ links, contacts, active }: MenuPillProps) {
           onClick={() => (open ? close() : setOpen(true))}
           className="flex items-center gap-10 rounded-500 bg-menu-trigger-bg py-10 pr-22 pl-20 font-rounded text-p1 font-medium text-menu-trigger-text backdrop-blur-[12px] focus-visible:focus-ring"
         >
-          <span aria-hidden="true" className="flex size-16 flex-col gap-6 px-2 py-4">
-            <span className="h-2 rounded-4 bg-menu-trigger-icon" />
-            <span className="h-2 rounded-4 bg-menu-trigger-icon" />
+          <span aria-hidden="true" className="flex size-16 flex-col gap-4 px-2 py-4">
+            <span className="h-2 shrink-0 rounded-4 bg-menu-trigger-icon" />
+            <span className="h-2 shrink-0 rounded-4 bg-menu-trigger-icon" />
           </span>
           {label}
         </button>

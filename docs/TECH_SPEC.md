@@ -203,7 +203,7 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 | Workflow | When | Steps |
 |---|---|---|
-| `ci.yml` | Every PR, and every push to `dev` and `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → `python3 scripts/check_secret_scope.py` and `python3 scripts/check_bundle.py` → Playwright (Chromium + WebKit at 390/834/1440, with axe) → Lighthouse CI → `docker build` (proves the image builds) |
+| `ci.yml` | Every PR, and every push to `dev` and `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → `python3 scripts/check_secret_scope.py` and `python3 scripts/check_bundle.py` → Playwright in its Docker image (Chromium + WebKit at 390/834/1440, with axe, plus Chromium visual baselines in `tests/e2e/__screenshots__/`, STATE D-83/D-85) → Lighthouse CI → `docker build` (proves the image builds) |
 | `deploy.yml` | Push to `main`, after CI | `bunx wrangler deploy`, which builds the Dockerfile, pushes the image to Cloudflare and rolls out the Worker and container |
 
 `bun run verify` runs lint → typecheck → test → build locally. That's the same as the first half of CI.
