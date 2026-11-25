@@ -21,6 +21,8 @@ export default defineConfig({
     command:
       "bun run build && cp -R .next/static .next/standalone/.next/ && (test ! -d public || cp -R public .next/standalone/) && node .next/standalone/server.js",
     url: baseURL,
+    // Docker sets HOSTNAME to the container id, which server.js would bind to instead of every interface
+    env: { HOSTNAME: "0.0.0.0" },
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },
