@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [dev, main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_CONTRIB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - run: python3 scripts/check_secret_scope.py
+      - run: python3 -m unittest discover scripts/tests
+      - run: bun run typecheck
+      - run: bun run test
+      - run: bun run build
+      - run: python3 scripts/check_bundle.py
+
+  e2e:
+    needs: verify
+    runs-on: ubuntu-latest
+    # The image the visual baselines are recorded in (STATE D-85); keep it on the installed Playwright version
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.1-noble
+      options: --ipc=host
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_CONTRIB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y --no-install-recommends unzip
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run e2e
+
+  lighthouse:
+    needs: verify
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ secrets.GH_CONTRIB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: Run Lighthouse CI against the standalone server
+        run: |
+          cp -R .next/static .next/standalone/.next/
+          if [ -d public ]; then cp -R public .next/standalone/; fi
+          bunx @lhci/cli@0.15.x autorun --config=lighthouserc.json
+
+  docker:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          secrets: |
+            GITHUB_TOKEN=${{ secrets.GH_CONTRIB_TOKEN }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

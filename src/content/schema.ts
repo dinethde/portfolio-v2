@@ -1,0 +1,221 @@
+import type { StaticImageData } from "next/image";
+import { z } from "zod";
+
+// The shapes of every word and picture on the page (TECH_SPEC §11, ARCHITECTURE §5). Each content
+// module calls Schema.parse() on its data, so a typo or a missing field fails the build. Objects are
+// strict: an unknown key is a typo, not extra data.
+
+const Text = z.string().trim().min(1);
+
+/** A link on this site (`/`, `#`), or https, mailto or tel. */
+const Href = z.string().regex(/^(https:\/\/|mailto:|tel:|\/|#)/, "Use https, mailto, tel, / or #");
+
+// ── Rich text ─────────────────────────────────────────────────────────
+
+/** The colour signals in DESIGN.md "Colors". No tone means the paragraph's own colour. */
+export const Tone = z.enum(["strong", "brand", "secondary", "error"]);
+export type Tone = z.infer<typeof Tone>;
+
+/** 400, 500 and 600 (DESIGN.md "Typography"). */
+export const Weight = z.enum(["regular", "medium", "semibold"]);
+export type Weight = z.infer<typeof Weight>;
+
+/** A piece of text with one look. Rich text is a list of runs, never HTML. */
+export const Run = z.strictObject({
+  text: z.string().min(1),
+  weight: Weight.optional(),
+  tone: Tone.optional(),
+});
+export type Run = z.infer<typeof Run>;
+
+export const RichParagraph = z.array(Run).min(1);
+export type RichParagraph = z.infer<typeof RichParagraph>;
+
+// ── Pictures ──────────────────────────────────────────────────────────
+
+/** An image imported from src/assets/, so next/image knows its size at build time. */
+export const Image = z.custom<StaticImageData>(
+  (value) =>
+    z
+      .object({ src: z.string(), width: z.number().positive(), height: z.number().positive() })
+      .safeParse(value).success,
+  "Import the image from src/assets/ instead of writing a path",
+);
+
+/** An image and its alt text. Use an empty alt for pictures that only decorate. */
+export const Picture = z.strictObject({ image: Image, alt: z.string() });
+export type Picture = z.infer<typeof Picture>;
+
+// ── Shared pieces ─────────────────────────────────────────────────────
+
+/** The blue eyebrow, serif title and optional line of a section header (Figma 92:2296). */
+export const SectionHeading = z.strictObject({
+  eyebrow: Text,
+  title: Text,
+  description: Text.optional(),
+});
+export type SectionHeading = z.infer<typeof SectionHeading>;
+
+// ── Site facts ────────────────────────────────────────────────────────
+
+export const Site = z.strictObject({
+  name: Text,
+  title: Text,
+  /** The meta description: the intro's first sentence, at most 155 characters (TECH_SPEC §4). */
+  description: Text.max(155),
+  email: z.email(),
+  phone: Text,
+  resume: z.strictObject({ href: Href, label: Text }),
+  github: z.strictObject({ handle: Text, href: Href, label: Text }),
+  twitter: z.strictObject({ handle: Text, href: Href, label: Text }),
+  /** "TODO" until the URL is known (STATE.md O1). */
+  linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]), label: Text }),
+});
+export type Site = z.infer<typeof Site>;
+
+/** The menu: one label per section anchor, in page order. */
+export const Nav = z.array(z.strictObject({ id: Text, label: Text })).min(1);
+export type Nav = z.infer<typeof Nav>;
+
+/** The contact rows under the links in the tablet and phone menu panel (Figma 276:3847). */
+export const MenuContacts = z
+  .array(z.strictObject({ label: Text, value: Text, href: Href, external: z.boolean().optional() }))
+  .min(1);
+export type MenuContacts = z.infer<typeof MenuContacts>;
+
+// ── ① Intro ───────────────────────────────────────────────────────────
+
+export const Intro = z.strictObject({
+  greeting: Text,
+  /** The emoji beside the greeting (Figma 111:4646). */
+  greetingEmoji: z.strictObject({ wave: Text, eyes: Text }),
+  paragraphs: z.array(RichParagraph).min(1),
+  cta: RichParagraph,
+  /** The line above the contribution chart. */
+  chartTitle: Text,
+});
+export type Intro = z.infer<typeof Intro>;
+
+// ── ② Story ───────────────────────────────────────────────────────────
+
+/** A small project under a timeline stop, with up to three thumbnails that fan out on hover. */
+export const ProjectRow = z.strictObject({
+  title: Text,
+  description: Text,
+  thumbs: z.array(Picture).min(1).max(3),
+  href: Href.optional(),
+});
+export type ProjectRow = z.infer<typeof ProjectRow>;
+
+export const TimelineEntry = z.strictObject({
+  org: Text,
+  logo: Picture,
+  /** Shows the CURRENT tag. */
+  current: z.boolean().default(false),
+  role: Text,
+  description: Text,
+  /** "COLOMBO", "REMOTE". Some stops have no place or dates. */
+  place: Text.optional(),
+  period: Text.optional(),
+  projects: z.array(ProjectRow).max(3),
+});
+export type TimelineEntry = z.infer<typeof TimelineEntry>;
+
+export const Story = z.strictObject({
+  header: SectionHeading,
+  intro: z.strictObject({ title: Text, subtitle: Text }),
+  entries: z.array(TimelineEntry).min(1),
+  signOff: z.strictObject({ title: Text, subtitle: Text }),
+  photos: z.array(Picture).min(1),
+});
+export type Story = z.infer<typeof Story>;
+
+// ── ③ Projects ────────────────────────────────────────────────────────
+
+/** The three glow styles on the project card board (Figma 251:3651). */
+export const Glow = z.enum(["blue-base", "warm-right", "warm-left"]);
+export type Glow = z.infer<typeof Glow>;
+
+export const Project = z.strictObject({
+  title: Text,
+  description: Text,
+  /** Figma only has a placeholder square here, which the card draws when there's no icon (STATE D-40). */
+  icon: Picture.optional(),
+  image: Picture,
+  glow: Glow,
+  /** The small label at the top right of the card, like "FYP". */
+  tag: Text.optional(),
+  href: Href.optional(),
+});
+export type Project = z.infer<typeof Project>;
+
+export const Projects = z
+  .strictObject({ header: SectionHeading, items: z.array(Project).min(1) })
+  .refine(
+    (projects) =>
+      projects.items.every((item, i) => i === 0 || item.glow !== projects.items[i - 1]?.glow),
+    {
+      message: "Neighbouring project cards need different glows (DESIGN.md Components)",
+      path: ["items"],
+    },
+  );
+export type Projects = z.infer<typeof Projects>;
+
+// ── ④ About ───────────────────────────────────────────────────────────
+
+/** "Tools I use?" written as a sentence with pills in it. */
+export const ToolSentence = z
+  .array(
+    z.discriminatedUnion("kind", [
+      z.strictObject({ kind: z.literal("text"), text: z.string().min(1) }),
+      z.strictObject({ kind: z.literal("pill"), label: Text }),
+    ]),
+  )
+  .refine(
+    (parts) => parts.some((part) => part.kind === "pill"),
+    "A tool sentence needs at least one pill",
+  );
+export type ToolSentence = z.infer<typeof ToolSentence>;
+
+export const About = z.strictObject({
+  header: SectionHeading,
+  bio: z.array(RichParagraph).min(1),
+  tools: z.strictObject({ title: Text, sentence: ToolSentence }),
+  /** A bulleted list in Figma, one item per line. */
+  interests: z.strictObject({ title: Text, items: z.array(Text).min(1) }),
+  photos: z.array(Picture),
+});
+export type About = z.infer<typeof About>;
+
+// ── ⑤ Contact ─────────────────────────────────────────────────────────
+
+/** The centred sign-off line, with its one italic serif word. */
+export const Contact = z.strictObject({
+  /** `lead` is the first sentence: Figma breaks the line after it from tablet up. */
+  line: z.strictObject({
+    lead: z.string().optional(),
+    before: z.string(),
+    accent: Text,
+    after: z.string(),
+  }),
+  /** The footer card's button and link labels (copy/desktop.md "Footer card"). */
+  footer: z.strictObject({
+    sayHi: Text,
+    resume: Text,
+    twitter: Text,
+    github: Text,
+    linkedin: Text,
+    email: Text,
+    mobile: Text,
+  }),
+});
+export type Contact = z.infer<typeof Contact>;
+
+// ── 404 ───────────────────────────────────────────────────────────────
+
+/** The small "page not found" screen: a section header and a link home. Figma has no 404 frame. */
+export const NotFound = z.strictObject({
+  heading: SectionHeading,
+  homeLabel: Text,
+});
+export type NotFound = z.infer<typeof NotFound>;

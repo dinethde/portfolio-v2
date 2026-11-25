@@ -1,0 +1,14 @@
+# Python helper scripts in scripts/. The kit in .claude/ is formatted upstream.
+line-length = 120
+target-version = "py39"
+extend-exclude = [".claude"]
+
+[format]
+skip-magic-trailing-comma = true
+
+[lint]
+select = ["E", "W", "F", "I", "B", "UP", "SIM", "C4", "RET", "PTH", "N", "RUF"]
+
+[lint.isort]
+split-on-trailing-comma = false
+required-imports = ["from __future__ import annotations"]

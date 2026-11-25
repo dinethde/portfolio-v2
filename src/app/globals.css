@@ -1,0 +1,87 @@
+@import "tailwindcss";
+@import "../styles/design-tokens.css";
+
+/* No raw values in this file. Every colour, size, shadow and breakpoint is a token from
+   design-tokens.css (generated from Figma — TECH_SPEC §2.1). */
+
+/* The lab shows every Figma state at once: anything inside data-force-state="hover focus …"
+   gets that state's styles. Same variants as Tailwind's, plus the attribute (STATE D-34). */
+@custom-variant hover {
+  @media (hover: hover) {
+    &:hover {
+      @slot;
+    }
+  }
+  [data-force-state~="hover"] & {
+    @slot;
+  }
+}
+
+@custom-variant focus-visible {
+  &:focus-visible {
+    @slot;
+  }
+  [data-force-state~="focus"] & {
+    @slot;
+  }
+}
+
+@custom-variant active {
+  &:active {
+    @slot;
+  }
+  [data-force-state~="pressed"] & {
+    @slot;
+  }
+}
+
+@custom-variant visited {
+  &:visited {
+    @slot;
+  }
+  [data-force-state~="visited"] & {
+    @slot;
+  }
+}
+
+/* The keyboard focus ring from Figma: a 2px gap in the surface colour, then a 2px blue ring.
+   The transparent outline keeps it visible in forced-colours mode, where box shadows are dropped.
+   Use it as `focus-visible:focus-ring`. */
+@utility focus-ring {
+  outline: 2px solid transparent;
+  @apply ring-2 ring-fill-secondary-main-active ring-offset-2 ring-offset-surface-neutral-light-active;
+}
+
+/* The intro's entrance in plain CSS, so the text shows without JavaScript (STATE D-77). The
+   12px and 500ms mirror `entrance` in src/lib/motion.ts. */
+@theme {
+  --animate-entrance: entrance 500ms var(--ease-soft) both;
+
+  @keyframes entrance {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@layer base {
+  /* The page's default text is p2 in the rounded family (DESIGN.md "Typography"). */
+  html {
+    font-family: var(--font-rounded);
+    background-color: var(--color-surface-page-active);
+    color: var(--color-txt-neutral-p2-active);
+    font-size: var(--text-p2);
+    line-height: var(--text-p2--line-height);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+}
