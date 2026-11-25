@@ -68,7 +68,7 @@ export const Site = z.strictObject({
   resume: z.strictObject({ href: Href, label: Text }),
   github: z.strictObject({ handle: Text, href: Href, label: Text }),
   twitter: z.strictObject({ handle: Text, href: Href, label: Text }),
-  /** "TODO" until the URL is known (STATE.md O1). */
+  /** "TODO" marks a link with no URL; the page leaves such a link out. */
   linkedin: z.strictObject({ href: z.union([Href, z.literal("TODO")]), label: Text }),
 });
 export type Site = z.infer<typeof Site>;

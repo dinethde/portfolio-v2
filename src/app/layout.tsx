@@ -29,8 +29,8 @@ const nunito = Nunito({
 
 const title = `${site.name} — ${site.title}`;
 
-// TECH_SPEC §4. SITE_URL is set at build time; until the domain is chosen (STATE O2) links resolve
-// against localhost. The share image is app/opengraph-image.png, which Next picks up by itself.
+// TECH_SPEC §4. SITE_URL is set at build time; when it is unset (local runs) links resolve against
+// localhost. The share image is app/opengraph-image.png, which Next picks up by itself.
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
   title,
