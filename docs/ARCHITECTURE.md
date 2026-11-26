@@ -7,19 +7,16 @@ How the parts of the portfolio fit together. It's a small site, so this is a sho
 
 ## 1. The big picture
 
-The portfolio is **one page, built ahead of time, and refreshed in the background every 6 hours.** The browser gets finished HTML and a small amount of JavaScript for the parts that move. Nothing is fetched from the browser.
+The portfolio is **one page, built ahead of time as plain files, and rebuilt every 6 hours** (STATE D-86, D-87). The browser gets finished HTML and a small amount of JavaScript for the parts that move. Nothing is fetched from the browser.
 
 ```
-              build time                                   request time
-┌───────────────────────────────┐        ┌──────────────────────────────────────────────┐
-│ next build                    │        │ Visitor                                      │
-│  ├─ content/*.ts  (zod check) │        │   └─▶ Cloudflare edge cache ──hit──▶ HTML   │
-│  ├─ getContributions()        │        │            │ miss / stale                    │
-│  │    └─ GitHub GraphQL       │        │            ▼                                 │
-│  └─ renders page → HTML       │        │        Worker ─▶ Container (Next.js server)  │
-└───────────────────────────────┘        │                    └─ re-renders the page    │
-                                         │                       every 6 h at most      │
-                                         └──────────────────────────────────────────────┘
+         build (deploy.yml: merge to main, every 6 h)              request time
+┌───────────────────────────────────────────┐        ┌──────────────────────────────────────┐
+│ next build  (output: "export")            │        │ Visitor                              │
+│  ├─ content/*.ts  (zod check)             │        │   └─▶ Cloudflare Worker static       │
+│  ├─ getContributions() ─▶ GitHub GraphQL  │──out/─▶│       assets ─▶ the built files      │
+│  └─ renders page → out/index.html         │        │       (no server, nothing to wake)   │
+└───────────────────────────────────────────┘        └──────────────────────────────────────┘
 ```
 
 ## 2. One page, five sections
@@ -71,13 +68,11 @@ Keep the `"use client"` line on these leaf files only, never on a section or on 
 getContributions(login)                   lib/github/contributions.ts  (server only)
   ├─ fetchCalendar(login, token, now)       GraphQL call, 5 s timeout (`now` makes the date range testable)
   ├─ toContributions(raw, now)              lib/github/map.ts — pure: levels, week trimming, shape
-  ├─ on success → save it                   PUT http://contributions.internal (the Worker keeps it in
-  │                                          the Durable Object's storage, STATE D-75)
-  ├─ on any error → the saved copy          GET http://contributions.internal, source "stored"
-  └─ nothing saved → fallback JSON          content/contributions.fallback.json, logged as [contrib]
+  ├─ on any error, CONTRIBUTIONS_STRICT=1 → throw (the build fails; the last deploy stays live, STATE D-87)
+  └─ on any error otherwise → fallback JSON content/contributions.fallback.json, logged as [contrib]
 ```
 
-The chart component only receives the final shape. It never knows whether the data is live, saved or from the fallback.
+The chart component only receives the final shape. It never knows whether the data is live or from the fallback.
 
 ## 6. Browser state
 
@@ -92,15 +87,14 @@ Everything else is local state: whether the menu is open, and which chart cell i
 
 | Situation                       | What happens                                                                         |
 | ------------------------------- | ------------------------------------------------------------------------------------ |
-| GitHub is down or slow          | The last data pulled is shown (the bundled fallback if none was saved yet). The next rebuild tries again |
+| GitHub is down or slow          | The scheduled build fails, so the last deploy and its data stay live. The next rebuild tries again |
 | Content doesn't fit a component | Follow that component's "content doesn't fit" card in Figma                          |
 | An image is missing             | The build fails. Images are imported, not linked by string                           |
 | JavaScript fails to load        | All text, links and the chart grid still work. Only motion and the tooltip are lost  |
-| The container is asleep         | The edge cache serves the page. The first uncached visit waits about 1–3 s           |
 
 ## 8. The lab (development only)
 
-`app/(dev)/lab/` shows every component on its own, in every Figma variant and state, using sample data. Each component has its own entry file in `entries/`, so parallel work never touches the same file. In production it returns 404.
+`app/(dev)/lab/` shows every component on its own, in every Figma variant and state, using sample data. Each component has its own entry file in `entries/`, so parallel work never touches the same file. Its page is `page.dev.tsx`, which only `next dev` picks up, so the static export has no `/lab` (STATE D-89).
 
 Lab entries may read `content/` for sample data, and may be `"use client"` when they need to drive a component's state (as the timeline entry sets its dots' data attributes).
 

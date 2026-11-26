@@ -1,8 +1,8 @@
 {
   "ci": {
     "collect": {
-      "startServerCommand": "node .next/standalone/server.js",
-      "startServerReadyPattern": "Ready",
+      "startServerCommand": "bunx wrangler dev --port 3000",
+      "startServerReadyPattern": "Ready on",
       "url": ["http://localhost:3000/"],
       "numberOfRuns": 3,
       "settings": { "skipAudits": ["color-contrast"] }

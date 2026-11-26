@@ -9,11 +9,9 @@ import { site } from "@/content/site";
 import { getContributions } from "@/lib/github/contributions";
 import { personJsonLd } from "@/lib/seo";
 
-// The one page (ARCHITECTURE §2). Static, refreshed at most every 6 hours (STATE D-04); the chart
-// data never throws, it falls back to the saved JSON. One 600px column with 96px between sections
-// (DESIGN.md "Layout"); the footer area is 750px wide.
-
-export const revalidate = 21600;
+// The one page (ARCHITECTURE §2). Built once into out/ and rebuilt on a schedule (STATE D-87); the
+// chart data falls back to the saved JSON unless CONTRIBUTIONS_STRICT=1. One 600px column with 96px
+// between sections (DESIGN.md "Layout"); the footer area is 750px wide.
 
 export default async function Home() {
   const contributions = await getContributions(process.env.GITHUB_LOGIN ?? site.github.handle);

@@ -7,7 +7,7 @@ One quiet page that reads like a letter: who I am → where I've been → what I
 ## For everyone
 
 - **Design:** Figma file [Portfolio Rewamp](https://www.figma.com/design/op5jPr3yqBUUTyi2CJGQI3/Portfolio-Rewamp?node-id=318-7563), High-fi V1. The short version is in `docs/DESIGN.md`.
-- **Build:** Next.js and Tailwind CSS, built with Bun, packed in Docker and hosted on Cloudflare. The GitHub chart shows real data, refreshed every 6 hours.
+- **Build:** Next.js and Tailwind CSS, built with Bun, exported as static files and hosted free on Cloudflare. The GitHub chart shows real data, refreshed every 6 hours.
 - **Status:** design done. The code is built step by step from the tasks in `plan/`.
 
 ## Docs
@@ -41,7 +41,7 @@ bun run dev          # local site, plus /lab for components
 bun run verify       # lint → typecheck → test → build
 bun run e2e          # Playwright
 python3 -m unittest discover scripts/tests   # the Python helper scripts
-docker compose up    # the production image on localhost:3000
+bun run build && bunx wrangler dev    # the built site (out/) on localhost:8787
 ```
 
 ### Secrets

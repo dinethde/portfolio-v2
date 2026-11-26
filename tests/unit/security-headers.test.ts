@@ -4,6 +4,7 @@ import {
   buildContentSecurityPolicy,
   buildSecurityHeaders,
   securityHeaders,
+  toHeadersFile,
 } from "@/lib/security-headers";
 
 describe("security headers", () => {
@@ -44,5 +45,16 @@ describe("security headers", () => {
     expect(byKey["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     expect(byKey["X-Content-Type-Options"]).toBe("nosniff");
     expect(byKey["Permissions-Policy"]).toBe("camera=(), microphone=(), geolocation=()");
+  });
+
+  it("writes the _headers file with one indented line per header", () => {
+    const file = toHeadersFile(buildSecurityHeaders(false, false));
+    const lines = file.split("\n");
+    expect(lines[0]).toBe("/*");
+    expect(lines).toHaveLength(6);
+    expect(lines[1]).toMatch(/^ {2}Content-Security-Policy: default-src 'self'; /);
+    expect(lines[2]).toBe("  Referrer-Policy: strict-origin-when-cross-origin");
+    expect(file.endsWith("\n")).toBe(true);
+    expect(file).not.toContain("upgrade-insecure-requests");
   });
 });

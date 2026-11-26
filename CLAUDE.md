@@ -68,7 +68,7 @@ NOTES: anything the lead should look at, decisions to log; for BLOCKED, the one 
 
 # Project: portfolio-v2
 
-Dineth De Silva's portfolio: one quiet, single-column page. Next.js 16 (App Router), Tailwind v4 and `motion`, built with Bun, shipped as a Docker image on Cloudflare. The design is final: Figma "Portfolio Rewamp", High-fi V1.
+Dineth De Silva's portfolio: one quiet, single-column page. Next.js 16 (App Router), Tailwind v4 and `motion`, built with Bun, shipped as a static export on Cloudflare's free plan. The design is final: Figma "Portfolio Rewamp", High-fi V1.
 
 ## Docs (read only the part your task needs)
 
@@ -82,7 +82,7 @@ Dineth De Silva's portfolio: one quiet, single-column page. Next.js 16 (App Rout
 
 ## Commands
 
-`bun install` · `bun run dev` · `bun run verify` (lint → typecheck → test → build) · `bun run test <file>` · `bun run e2e <spec>` · `bun run lab:shot <id>` (screenshots at 390, 834 and 1440) · `docker compose up` · `python3 scripts/build_tokens.py`
+`bun install` · `bun run dev` · `bun run verify` (lint → typecheck → test → build) · `bun run test <file>` · `bun run e2e <spec>` · `bun run lab:shot <id>` (screenshots at 390, 834 and 1440) · `bunx wrangler dev` (serves the built `out/`) · `python3 scripts/build_tokens.py`
 
 **For reviewers:** `bun run dev`, then a component at `http://localhost:3000/lab?only=<id>` and the page at `http://localhost:3000`. Breakpoints are 390 (phone), 834 (tablet) and 1440 (desktop).
 

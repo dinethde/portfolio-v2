@@ -17,12 +17,10 @@ export default defineConfig({
     { name: "webkit", use: { ...devices["Desktop Safari"] } },
   ],
   webServer: {
-    // Same server as the container (STATE D-02): standalone output needs its static files beside it.
-    command:
-      "bun run build && cp -R .next/static .next/standalone/.next/ && (test ! -d public || cp -R public .next/standalone/) && node .next/standalone/server.js",
+    // Serves the static export the way production does, as an assets-only Worker (STATE D-91).
+    command: "bun run build && bunx wrangler dev --port 3000 --ip 0.0.0.0",
     url: baseURL,
-    // Docker sets HOSTNAME to the container id, which server.js would bind to instead of every interface
-    env: { HOSTNAME: "0.0.0.0" },
+    env: { WRANGLER_SEND_METRICS: "false" },
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
   },
