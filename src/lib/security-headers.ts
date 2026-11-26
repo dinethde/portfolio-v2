@@ -41,9 +41,16 @@ export function buildSecurityHeaders(development: boolean, secure = true): Secur
   ];
 }
 
+/** The Cloudflare `_headers` file: one `/*` rule with an indented line per header. */
+export function toHeadersFile(headers: SecurityHeader[]): string {
+  return `/*\n${headers.map((h) => `  ${h.key}: ${h.value}\n`).join("")}`;
+}
+
 const isDevelopment = process.env.NODE_ENV === "development";
 // The same SITE_URL as lib/seo.ts; unset means localhost.
 const isSecure = (process.env.SITE_URL ?? "").startsWith("https:");
 
 export const contentSecurityPolicy = buildContentSecurityPolicy(isDevelopment, isSecure);
 export const securityHeaders = buildSecurityHeaders(isDevelopment, isSecure);
+
+export const headersFile = toHeadersFile(buildSecurityHeaders(false, isSecure));
