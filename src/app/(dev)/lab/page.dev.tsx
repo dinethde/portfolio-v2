@@ -24,9 +24,11 @@ async function entryIds(): Promise<string[]> {
     .sort();
 }
 
-export default async function LabPage({ searchParams }: PageProps<"/lab">) {
-  if (process.env.NODE_ENV === "production") notFound();
-
+export default async function LabPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { only } = await searchParams;
   const ids = await entryIds();
   const shown = typeof only === "string" ? ids.filter((id) => id === only) : ids;
