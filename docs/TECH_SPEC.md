@@ -40,7 +40,8 @@ portfolio-v2/
 │  │  ├─ opengraph-image.png       1200×630 share image
 │  │  ├─ robots.ts
 │  │  ├─ sitemap.ts
-│  │  └─ (dev)/lab/                Component lab: page.tsx, fixtures.ts, entries/<id>.lab.tsx. 404 in production
+│  │  ├─ %5Fheaders/route.ts        Writes out/_headers, the security headers for Cloudflare (STATE D-88)
+│  │  └─ (dev)/lab/                Component lab: page.dev.tsx, fixtures.ts, entries/<id>.lab.tsx. Development only (STATE D-89)
 │  ├─ components/
 │  │  ├─ ui/                       Small building blocks: Button, Pill, SectionHeader, RichText, Reveal, BrandMark, icons/
 │  │  ├─ menu/                     SiteMenu, MenuPill, MenuPanel, MenuLink
@@ -222,7 +223,7 @@ Visitor → Cloudflare (Worker static assets) → out/index.html, out/_next/stat
 - **Cloudflare:** `wrangler.jsonc` describes an assets-only Worker named `dinethde-me` (STATE D-92), with no `main` script: `assets.directory` is `./out` and `not_found_handling` is `404-page`. It's routed to `dinethde.me` as a custom domain.
   - Static asset requests are free and unlimited on the Workers Free plan. There's no server, so nothing sleeps or cold-starts.
   - `/_next/static/*` file names change on every build, so they can be cached for good.
-- **Locally:** `bun run dev` for development. To check the production files, `bun run build`, then `bunx wrangler dev` serves `out/` on `localhost:8787` with the `_headers` applied.
+- **Locally:** `bun run dev` for development. To check the production files, `bun run build`, then `bunx wrangler dev` serves `out/` on `localhost:8787` (wrangler's default; the tests pass `--port 3000`) with the `_headers` applied.
 - **Fallback:** `out/` is plain files, so any static host can serve it. Only the headers would need setting another way.
 
 **Environment variables**
@@ -299,7 +300,7 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 | #   | Decision                                                                                              | Status       |
 | --- | ----------------------------------------------------------------------------------------------------- | ------------ |
 | O1  | LinkedIn URL                                                                                          | `https://www.linkedin.com/in/dineth-de/` |
-| O2  | Domain (needed for the edge cache, §8)                                                                | `dinethde.me` |
+| O2  | Domain (the Worker's custom domain, §8)                                                              | `dinethde.me` |
 | O3  | Analytics: Cloudflare Web Analytics (no cookies, needs a CSP host added) or none                      | None at launch |
 | O4  | `resume.pdf` file                                                                                     | `public/resume.pdf` |
 | O5  | Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback such as Nunito (≈ 25 KB) | Nunito, self-hosted (STATE D-72) |
