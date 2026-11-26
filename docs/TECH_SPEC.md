@@ -15,10 +15,10 @@ Sections are numbered so a task can point straight at one (for example "TECH_SPE
 | Icons | Monochrome SVGs exported from Figma wherever Figma draws the icon; **lucide-react** only for an icon Figma doesn't draw | Figma is the source of truth, so its glyphs win; Lucide fills gaps in the same line style |
 | Motion | **motion** (`motion/react`) | Scroll progress, entrances and reduced-motion support |
 | Validation | **zod** | Checks the content files and the GitHub response |
-| Package manager and scripts | **Bun** (`bun install`, `bun run …`) | Fast installs and one tool for scripts. The production server still runs on Node (see §8) |
+| Package manager and scripts | **Bun** (`bun install`, `bun run …`) | Fast installs and one tool for scripts. The site is a static export, so nothing runs a server in production (see §8) |
 | Lint and format | **Biome** | One fast tool for both |
 | Tests | **Vitest** + Testing Library · **Playwright** + axe · **Lighthouse CI** | Unit, browser, accessibility and speed checks |
-| Hosting | **Docker** image on **Cloudflare Containers**, behind Cloudflare's edge cache | See §8 |
+| Hosting | A **static export** (`out/`) served as **Cloudflare Workers static assets**, free plan (STATE D-86) | See §8 |
 | Code, CI and data | **GitHub**: the repo, GitHub Actions, and the GitHub GraphQL API for the chart | |
 | Helper scripts | **Python 3.9+**, standard library, typed, linted with ruff | `scripts/`, tested in `scripts/tests/` |
 
@@ -62,15 +62,12 @@ portfolio-v2/
 ├─ tests/
 │  ├─ unit/                        Vitest
 │  └─ e2e/                         Playwright + axe
-├─ worker/                         Cloudflare Worker that starts and routes to the container, and keeps the
-│                                  last pulled chart data (index.ts, contributions-store.ts)
 ├─ scripts/                        Python helpers: build_tokens.py, check_tokens.py, check_code_rules.py, lab_shot.py,
 │                                  fallback refresh, budget checks · figma/export-variables.js · tests/
 ├─ copy/desktop.md                 Every word of the Figma desktop frame, exported once (STATE.md D-23)
 ├─ plan/                           One file per task (the orchestrator kit)
 ├─ .claude/                        The orchestrator kit (managed by `orch sync`) + settings.json, orchestrator.json
 ├─ .github/workflows/              ci.yml · deploy.yml
-├─ Dockerfile · .dockerignore · compose.yaml
 ├─ next.config.ts · postcss.config.mjs · tsconfig.json · biome.json
 ├─ vitest.config.ts · playwright.config.ts · lighthouserc.json · wrangler.jsonc
 └─ package.json · bun.lock · .env.example · ruff.toml
@@ -137,11 +134,11 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 - `from` is now minus 52 weeks, moved back to that Sunday. `to` is now.
 - **Level mapping:** `NONE` → 0, `FIRST_QUARTILE` → 1, `SECOND_QUARTILE` → 2, `THIRD_QUARTILE` → 3, `FOURTH_QUARTILE` → 4. Colour cells with the `chart-level-N` tokens, never GitHub's own colours.
-- **Shape returned to the page:** `{ total: number; weeks: { date: string; count: number; level: 0|1|2|3|4 }[][]; fetchedAt: string; source: "live" | "stored" | "fallback" }`. The chart component declares only the `{ total, weeks }` part it uses, since components can't import `lib/github`; the page passes the whole object.
+- **Shape returned to the page:** `{ total: number; weeks: { date: string; count: number; level: 0|1|2|3|4 }[][]; fetchedAt: string; source: "live" | "fallback" }`. The chart component declares only the `{ total, weeks }` part it uses, since components can't import `lib/github`; the page passes the whole object.
 
-**Freshness:** `page.tsx` sets `export const revalidate = 21600` (6 hours). The fetch uses `next: { revalidate: 21600 }` and `signal: AbortSignal.timeout(5000)`. The page is built ahead of time and quietly rebuilt in the background at most every 6 hours.
+**Freshness (STATE D-87):** the chart is pulled when the site is built. `deploy.yml` rebuilds and redeploys after every merge to `main` and every 6 hours. The fetch uses `signal: AbortSignal.timeout(5000)`.
 
-**Keeping the last pull (STATE D-75):** after a live pull, `PUT` the result to `http://contributions.internal`, which the Worker saves in the Durable Object's storage. **When GitHub fails:** `GET` the saved copy from the same URL and return it with `source: "stored"`; if that fails too, return `src/content/contributions.fallback.json` with `source: "fallback"`. Log `[contrib]` with each error. **Never throw to the page.** Refresh the bundled file by hand with `scripts/refresh_fallback.py`.
+**When GitHub fails:** with `CONTRIBUTIONS_STRICT=1` (only in `deploy.yml`), throw, so the build fails and the last good deploy stays live. Otherwise (local, CI, no token) return `src/content/contributions.fallback.json` with `source: "fallback"` and log `[contrib]` with the error. Refresh the bundled file by hand with `scripts/refresh_fallback.py`.
 
 **Display rules:**
 - Header: `${total.toLocaleString("en-US")} contributions in the last year` (singular "1 contribution"), as Figma 351:8638 says.
@@ -203,49 +200,39 @@ query Contributions($login: String!, $from: DateTime!, $to: DateTime!) {
 
 | Workflow | When | Steps |
 |---|---|---|
-| `ci.yml` | Every PR, and every push to `dev` and `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → `python3 scripts/check_secret_scope.py` and `python3 scripts/check_bundle.py` → Playwright in its Docker image (Chromium + WebKit at 390/834/1440, with axe, plus Chromium visual baselines in `tests/e2e/__screenshots__/`, STATE D-83/D-85) → Lighthouse CI → `docker build` (proves the image builds) |
-| `deploy.yml` | Push to `main`, after CI | `bunx wrangler deploy`, which builds the Dockerfile, pushes the image to Cloudflare and rolls out the Worker and container |
+| `ci.yml` | Every PR, and every push to `dev` and `main` | `bun install --frozen-lockfile` → `bun run lint` (Biome + `python3 scripts/check_tokens.py` + `python3 scripts/check_code_rules.py` + `python3 scripts/build_tokens.py --check`) → `python3 -m unittest discover scripts/tests` → `bun run typecheck` → `bun run test` → `bun run build` → `python3 scripts/check_secret_scope.py` and `python3 scripts/check_bundle.py` → Playwright in its Docker image (Chromium + WebKit at 390/834/1440, with axe, plus Chromium visual baselines in `tests/e2e/__screenshots__/`, STATE D-83/D-85) → Lighthouse CI (both serve `out/` with `bunx wrangler dev`, STATE D-91) |
+| `deploy.yml` | After CI passes on a push to `main`, every 6 hours (cron) and on demand (STATE D-87) | Check out `main` → `bun install --frozen-lockfile` → `bun run build` with `SITE_URL`, `GITHUB_TOKEN` and `CONTRIBUTIONS_STRICT=1` → `bunx wrangler deploy`, which uploads `out/` |
 
 `bun run verify` runs lint → typecheck → test → build locally. That's the same as the first half of CI.
 
-**Secrets:** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (deploy), and `GH_CONTRIB_TOKEN` (chart data at build time, and the container's runtime `GITHUB_TOKEN`, set by `deploy.yml`).
+**Secrets:** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (deploy), and `GH_CONTRIB_TOKEN` (chart data at build time, passed to the build as `GITHUB_TOKEN`).
 
 ---
 
 ## 8. Hosting
 
-**How it runs:**
+**How it runs (STATE D-86):**
 
 ```
-Visitor → Cloudflare edge cache ──hit──→ cached page (most visits stop here)
-                 │ miss
-                 ▼
-          Worker (worker/index.ts) → Container (Docker image: Next.js standalone server on :3000)
+deploy.yml: next build (pulls GitHub) → out/ → wrangler deploy
+Visitor → Cloudflare (Worker static assets) → out/index.html, out/_next/static/*, …
 ```
 
-- **The Docker image** uses a multi-stage `Dockerfile`:
-  - A `oven/bun:1` stage installs dependencies and runs `next build`, with `output: "standalone"` in `next.config.ts`.
-  - The final `node:22-slim` stage copies `.next/standalone`, `.next/static` and `public/`, runs as a non-root user and starts `node server.js`.
-  - Why Node and not Bun at runtime: Next's standalone server is built for Node, and Bun still has gaps there.
-- **Cloudflare Containers:**
-  - The Worker uses the `Container` class from `@cloudflare/containers`, with `defaultPort = 3000` and `sleepAfter = "30m"`, and sends every request to one instance (type `basic`).
-  - A container that's asleep takes about 1–3 seconds to start. The edge cache hides this for almost every visitor.
-  - It needs the Workers Paid plan ($5 a month). A site this small should stay inside the included usage.
-- **Edge cache:**
-  - Next sends `s-maxage` for the page (from `revalidate`), and Cloudflare caches the HTML.
-  - `/_next/static/*` is cached for good, because the file names change on every build.
-  - Edge caching needs a **custom domain**. It does nothing on `*.workers.dev`.
-- **Locally:** `bun run dev` for development, and `docker compose up` to run the production image on `localhost:3000`.
-- **Fallback:** the same image runs on any container host. Put Cloudflare's proxy in front, and nothing else changes.
+- **The build:** `next.config.ts` sets `output: "export"` and `images: { unoptimized: true }` (STATE D-90). `next build` writes plain files to `out/`, including `404.html`, `robots.txt`, `sitemap.xml`, the Open Graph image and `_headers` (§9).
+- **Cloudflare:** `wrangler.jsonc` describes an assets-only Worker named `dinethde-me` (STATE D-92), with no `main` script: `assets.directory` is `./out` and `not_found_handling` is `404-page`. It's routed to `dinethde.me` as a custom domain.
+  - Static asset requests are free and unlimited on the Workers Free plan. There's no server, so nothing sleeps or cold-starts.
+  - `/_next/static/*` file names change on every build, so they can be cached for good.
+- **Locally:** `bun run dev` for development. To check the production files, `bun run build`, then `bunx wrangler dev` serves `out/` on `localhost:8787` with the `_headers` applied.
+- **Fallback:** `out/` is plain files, so any static host can serve it. Only the headers would need setting another way.
 
 **Environment variables**
 
 | Name | Where | Secret |
 |---|---|---|
-| `GITHUB_TOKEN` | Container runtime env (set by `deploy.yml`), Docker build secret | Yes |
-| `GITHUB_LOGIN` = `dinethde` | `wrangler.jsonc` vars | No |
-| `SITE_URL` | `wrangler.jsonc` vars + build arg | No |
-| `NEXT_TELEMETRY_DISABLED` = `1` | Dockerfile | No |
+| `GITHUB_TOKEN` | Build env in CI and `deploy.yml` (from `GH_CONTRIB_TOKEN`) | Yes |
+| `GITHUB_LOGIN` | Optional build env; defaults to `site.github.handle` | No |
+| `SITE_URL` = `https://dinethde.me` | Build env in `deploy.yml`; unset means localhost | No |
+| `CONTRIBUTIONS_STRICT` = `1` | Build env in `deploy.yml` only (STATE D-87) | No |
 
 Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/github/`.
 
@@ -258,16 +245,15 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
   - A fine-grained token that can only read.
   - Used only in `src/lib/github/` (`import "server-only"`).
   - Never logged and never sent to the browser.
-- **Headers** are set in `next.config.ts` → `headers()` for every route:
+- **Headers** for every route come from `buildSecurityHeaders()` in `src/lib/security-headers.ts`. The build writes them to `out/_headers` through `src/app/%5Fheaders/route.ts`, which Cloudflare applies; `next dev` sets them through `headers()` (STATE D-88):
   - `Content-Security-Policy`: `default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'; upgrade-insecure-requests` (the last directive only when `SITE_URL` is https, STATE D-79)
   - `Referrer-Policy: strict-origin-when-cross-origin` · `X-Content-Type-Options: nosniff` · `Permissions-Policy: camera=(), microphone=(), geolocation=()` · `poweredByHeader: false`
   - HSTS is turned on in Cloudflare.
 - **Why `'unsafe-inline'` for scripts:**
   - Next.js adds small inline scripts to start React.
-  - A per-request nonce would allow a stricter CSP, but it forces every request to render fresh, which stops the edge cache and brings back cold starts.
+  - A per-request nonce would allow a stricter CSP, but it needs a server to render every request, and the site is static files.
   - For a static page with no user input and no third-party scripts, that trade isn't worth it.
   - Revisit this if the site ever takes input or adds third-party scripts.
-- **Container:** a slim base image, a non-root user, and nothing installed that the server doesn't need.
 - **Dependencies:** Dependabot runs weekly, and installs use a frozen lockfile.
 
 ---
@@ -283,9 +269,8 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 
 - **Server Components by default.** Client components are only the parts listed in §6.
 - **Images:**
-  - Use `next/image` with `sizes` set, AVIF then WebP. SVG artwork (the brand mark) is the exception: `unoptimized`, since it's already vector.
+  - Use `next/image` with `sizes` set. Images are served as they are (`unoptimized`, STATE D-90), so each file in `src/assets/` is already resized for its slot (STATE D-38).
   - Every image has a width and height. Load lazily below the fold, and eagerly only for what the first screen shows.
-  - Add `sharp` so the standalone server can optimise images.
 - **Fonts:**
   - Instrument Serif comes from `next/font/google`, which self-hosts it and preloads it. Only the 400 and Italic weights.
   - Nunito, the rounded fallback where `ui-rounded` is missing, also comes from `next/font/google`, not preloaded (STATE D-72).
@@ -318,4 +303,4 @@ Ship a `.env.example`. CI fails if `GITHUB_TOKEN` appears outside `src/lib/githu
 | O3  | Analytics: Cloudflare Web Analytics (no cookies, needs a CSP host added) or none                      | None at launch |
 | O4  | `resume.pdf` file                                                                                     | `public/resume.pdf` |
 | O5  | Fonts off Apple devices: accept `system-ui`, or self-host a rounded fallback such as Nunito (≈ 25 KB) | Nunito, self-hosted (STATE D-72) |
-| O6  | Cloudflare Containers: check that it's out of beta and that the plan limits fit, before launch        | Done: out of beta, the plan fits |
+| O6  | Cloudflare Containers: check that it's out of beta and that the plan limits fit, before launch        | Replaced: Containers needs Workers Paid, so the site is a static export on the free plan (STATE D-86) |
